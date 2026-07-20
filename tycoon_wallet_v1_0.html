@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>大亨錢包</title>
+<style>
+
+:root{
+  --deep:#0B2E21; --green:#14503A; --green2:#1B6547;
+  --gold:#D4AF37; --gold2:#F0D98B;
+  --cream:#F4EFE2; --paper:#FBF7EC;
+  --ink:#16211C; --red:#B03A2E; --dim:rgba(244,239,226,.6);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  margin:0; font-family:"Noto Serif TC",Georgia,"Times New Roman",serif;
+  background:
+    radial-gradient(circle at 50% 0%, #17573E 0%, var(--deep) 60%),
+    var(--deep);
+  color:var(--cream); min-height:100vh;
+}
+.deco{ border:2px solid var(--gold); border-radius:4px; position:relative;
+  background:linear-gradient(160deg, rgba(212,175,55,.10), rgba(0,0,0,.18)); }
+.deco:before{ content:""; position:absolute; inset:4px; border:1px solid rgba(212,175,55,.45);
+  border-radius:2px; pointer-events:none; }
+.wrap{ max-width:520px; margin:0 auto; padding:20px 16px 48px; }
+h1,h2,h3{ margin:0; letter-spacing:.12em; }
+.title{ font-size:26px; color:var(--gold2); text-align:center; }
+.sub{ text-align:center; font-size:12px; letter-spacing:.35em; color:var(--dim); margin-top:6px; }
+.rule{ height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:14px 0; }
+.btn{ display:block; width:100%; padding:15px; margin-top:12px; cursor:pointer;
+  font-family:inherit; font-size:17px; letter-spacing:.14em; border-radius:3px;
+  border:2px solid var(--gold); background:linear-gradient(180deg,var(--gold2),var(--gold));
+  color:#22160A; font-weight:700; }
+.btn:active{ transform:translateY(1px); }
+.btn.ghost{ background:transparent; color:var(--gold2); }
+.btn.danger{ background:transparent; border-color:var(--red); color:#E9A79E; }
+.btn:disabled{ opacity:.4; cursor:not-allowed; }
+input{ width:100%; padding:14px; font-size:17px; font-family:inherit; border-radius:3px;
+  border:2px solid var(--gold); background:var(--paper); color:var(--ink); }
+.card{ padding:16px; margin-top:12px; }
+.muted{ color:var(--dim); font-size:13px; line-height:1.7; }
+.bal{ font-size:52px; color:var(--gold2); text-align:center; letter-spacing:.04em;
+  font-variant-numeric:tabular-nums; }
+.err{ color:#F0A79E; font-size:14px; margin-top:10px; text-align:center; min-height:20px; }
+.row{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.tag{ font-size:11px; letter-spacing:.2em; padding:3px 8px; border:1px solid var(--gold);
+  border-radius:2px; color:var(--gold2); white-space:nowrap; }
+.page{ display:none; } .page.on{ display:block; }
+table{ width:100%; border-collapse:collapse; font-size:14px; }
+th,td{ padding:9px 8px; border-bottom:1px solid rgba(212,175,55,.25); text-align:left; }
+th{ color:var(--gold2); font-size:12px; letter-spacing:.16em; }
+.hatband{ width:74px; height:44px; margin:0 auto 6px; position:relative; }
+.hatband:before{ content:""; position:absolute; left:12px; top:0; width:50px; height:32px;
+  background:#0E1512; border:2px solid var(--gold); border-radius:3px 3px 0 0; }
+.hatband:after{ content:""; position:absolute; left:0; top:30px; width:74px; height:8px;
+  background:#0E1512; border:2px solid var(--gold); border-radius:4px; }
+
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- P1 報到 -->
+  <section id="p1" class="page on">
+    <div class="hatband"></div>
+    <h1 class="title">大亨錢包</h1>
+    <div class="sub">TYCOON WALLET</div>
+    <div class="rule"></div>
+    <div class="deco card">
+      <div class="muted">報到即獲得開辦金 <b id="bonusTxt"></b> 元，憑錢包參加各項賭局。</div>
+      <div style="height:14px"></div>
+      <input id="nameIn" maxlength="10" placeholder="請輸入姓名">
+      <button class="btn" id="btnJoin">報 到 領 錢</button>
+      <div class="err" id="joinErr"></div>
+    </div>
+  </section>
+
+  <!-- P2 錢包 -->
+  <section id="p2" class="page">
+    <div class="deco card">
+      <div class="row">
+        <span class="tag" id="pName">—</span>
+        <span class="tag">BANK OF KUYA</span>
+      </div>
+      <div style="height:10px"></div>
+      <div class="muted" style="text-align:center;letter-spacing:.3em">結 餘</div>
+      <div class="bal" id="balTxt">0</div>
+      <div class="muted" style="text-align:center">大亨幣</div>
+    </div>
+    <button class="btn" id="btnLobby">前 往 賭 局</button>
+    <button class="btn ghost" id="btnShop">兌 換 獎 品</button>
+    <button class="btn ghost" id="btnLog">交 易 紀 錄</button>
+    <div class="deco card" id="logBox" style="display:none">
+      <h3 style="font-size:14px;color:var(--gold2)">交易紀錄</h3>
+      <div class="rule"></div>
+      <table><tbody id="logRows"></tbody></table>
+    </div>
+  </section>
+
+  <!-- P3 賭局大廳 -->
+  <section id="p3" class="page">
+    <h2 class="title" style="font-size:20px">賭 局 大 廳</h2>
+    <div class="sub">餘額 <span id="lobbyBal">0</span></div>
+    <div class="rule"></div>
+    <div id="gameList"></div>
+    <button class="btn ghost" id="btnBack1">回 錢 包</button>
+  </section>
+
+  <!-- P4 結算 -->
+  <section id="p4" class="page">
+    <div class="deco card" style="text-align:center">
+      <div class="tag" id="mGame">—</div>
+      <div style="height:12px"></div>
+      <div class="muted" id="mState">已扣入場費，等待結果</div>
+      <div class="bal" id="mResult" style="font-size:38px">—</div>
+      <div class="muted" id="mNote"></div>
+    </div>
+    <div id="selfBox" style="display:none">
+      <button class="btn" id="btnWin">我 贏 了</button>
+      <button class="btn ghost" id="btnLose">我 輸 了</button>
+    </div>
+    <button class="btn" id="btnBack2" style="display:none">回 錢 包</button>
+  </section>
+
+  <!-- 兌換 -->
+  <section id="p5" class="page">
+    <h2 class="title" style="font-size:20px">獎 品 兌 換</h2>
+    <div class="sub">餘額 <span id="shopBal">0</span></div>
+    <div class="rule"></div>
+    <div id="itemList"></div>
+    <button class="btn ghost" id="btnBack3">回 錢 包</button>
+  </section>
+
+</div>
+
+<script>
+
+/* ===================== 設定區（改這裡就好） ===================== */
+const CFG = {
+  /* Firebase：填入 config 並把 enabled 改成 true，即切換為多裝置連線模式。
+     留 false 時走本機模式（同一台電腦多分頁可互通，方便單機 DEMO）。 */
+  firebase: {
+    enabled: false,
+    config: {
+      apiKey: "",
+      authDomain: "",
+      databaseURL: "",   /* 亞洲區務必填完整 URL */
+      projectId: "",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: ""
+    }
+  },
+  SIGNUP_BONUS: 500,              /* 報到禮金 */
+  ADMIN_PASS: "kuya2026",         /* 後台密碼（DEMO 等級） */
+  /* B 案：風險分級定價 */
+  GAMES: [
+    { id:"g1", name:"快手骰王",  type:"手機", fee:30,  prize:50,  judge:"self",
+      desc:"手機上比手速，穩紮穩打的小額場",  icon:"&#127922;" },
+    { id:"g2", name:"團隊闖關",  type:"實體", fee:60,  prize:140, judge:"staff",
+      desc:"實體關卡，三人成隊，工作人員判定", icon:"&#127959;" },
+    { id:"g3", name:"大亨賭局",  type:"實體", fee:100, prize:250, judge:"staff",
+      desc:"押身家的大場，贏了翻倍有餘",       icon:"&#127974;" }
+  ],
+  /* 兌換品項（假資料，之後替換） */
+  ITEMS: [
+    { id:"i1", name:"大亨紀念徽章", cost:200, icon:"&#127894;" },
+    { id:"i2", name:"精品咖啡券",   cost:500, icon:"&#9749;" },
+    { id:"i3", name:"頭獎抽獎券",   cost:800, icon:"&#127915;" }
+  ]
+};
+/* =============================================================== */
+
+/* ============ 資料層：本機模式 / Firebase 模式 共用介面 ============ */
+const KEY = "tycoon_demo_db";
+const blank = () => ({ players:{}, matches:{}, logs:{} });
+
+let mem = blank();
+function lsGet(){
+  try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : blank(); }
+  catch(e){ return mem; }
+}
+function lsSet(d){
+  mem = d;
+  try { localStorage.setItem(KEY, JSON.stringify(d)); } catch(e){}
+}
+
+let FB = null; /* { db, ops } */
+async function initFirebase(){
+  if(!CFG.firebase.enabled) return null;
+  const app = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+  const dbm = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+  const a = app.initializeApp(CFG.firebase.config);
+  const db = dbm.getDatabase(a, CFG.firebase.config.databaseURL);
+  FB = { db, m: dbm };
+  return FB;
+}
+
+const Store = {
+  ready: false,
+  async init(){
+    if(CFG.firebase.enabled){ await initFirebase(); }
+    this.ready = true;
+  },
+  async all(){
+    if(FB){
+      const s = await FB.m.get(FB.m.ref(FB.db, "/"));
+      const v = s.val() || {};
+      return { players:v.players||{}, matches:v.matches||{}, logs:v.logs||{} };
+    }
+    return lsGet();
+  },
+  async write(path, val){
+    if(FB){ await FB.m.set(FB.m.ref(FB.db, path), val); return; }
+    const d = lsGet(); const p = path.split("/").filter(Boolean);
+    let n = d; for(let i=0;i<p.length-1;i++){ n[p[i]] = n[p[i]] || {}; n = n[p[i]]; }
+    if(val === null) delete n[p[p.length-1]]; else n[p[p.length-1]] = val;
+    lsSet(d);
+  },
+  async read(path){
+    if(FB){ const s = await FB.m.get(FB.m.ref(FB.db, path)); return s.val(); }
+    const d = lsGet(); const p = path.split("/").filter(Boolean);
+    let n = d; for(const k of p){ if(n == null) return null; n = n[k]; }
+    return n === undefined ? null : n;
+  },
+  async wipe(){
+    if(FB){ await FB.m.set(FB.m.ref(FB.db, "/"), null); return; }
+    lsSet(blank());
+  }
+};
+
+/* ---------- 共用工具 ---------- */
+const uidOf = n => "p_" + n.trim().replace(/[.#$\[\]\/]/g,"_");
+const money = n => (n||0).toLocaleString("en-US");
+const now = () => Date.now();
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const gameById = id => CFG.GAMES.find(g => g.id === id);
+
+/* 記一筆帳（同時更新餘額，先讀後寫） */
+async function tx(uid, type, amount, note){
+  const p = await Store.read("players/" + uid);
+  if(!p) throw new Error("查無此帳戶");
+  const nb = (p.balance || 0) + amount;
+  if(nb < 0) throw new Error("餘額不足");
+  p.balance = nb; p.updatedAt = now();
+  await Store.write("players/" + uid, p);
+  const tid = "t" + now() + "_" + Math.random().toString(36).slice(2,6);
+  await Store.write("logs/" + uid + "/" + tid,
+    { type, amount, note: note || "", balance: nb, ts: now() });
+  return p;
+}
+
+let ME = null, MATCH = null, poll = null;
+const $ = id => document.getElementById(id);
+const show = id => { document.querySelectorAll(".page").forEach(e=>e.classList.remove("on"));
+  $(id).classList.add("on"); window.scrollTo(0,0); };
+
+$("bonusTxt").textContent = money(CFG.SIGNUP_BONUS);
+
+/* ---- 報到 ---- */
+$("btnJoin").onclick = async () => {
+  const n = $("nameIn").value.trim();
+  if(!n){ $("joinErr").textContent = "請先輸入姓名"; return; }
+  $("btnJoin").disabled = true;
+  try{
+    const uid = uidOf(n);
+    let p = await Store.read("players/" + uid);
+    if(!p){
+      p = { name:n, balance:CFG.SIGNUP_BONUS, createdAt:now(), updatedAt:now() };
+      await Store.write("players/" + uid, p);
+      await Store.write("logs/" + uid + "/t0",
+        { type:"報到禮金", amount:CFG.SIGNUP_BONUS, note:"", balance:CFG.SIGNUP_BONUS, ts:now() });
+    }
+    ME = { uid, ...p };
+    try{ sessionStorage.setItem("tycoon_uid", uid); }catch(e){}
+    await refresh(); show("p2");
+  }catch(e){ $("joinErr").textContent = e.message; }
+  $("btnJoin").disabled = false;
+};
+
+async function refresh(){
+  const p = await Store.read("players/" + ME.uid);
+  if(p){ ME.balance = p.balance; ME.name = p.name; }
+  $("pName").textContent = ME.name;
+  $("balTxt").textContent = money(ME.balance);
+  $("lobbyBal").textContent = money(ME.balance);
+  $("shopBal").textContent = money(ME.balance);
+}
+
+/* ---- 交易紀錄 ---- */
+$("btnLog").onclick = async () => {
+  const box = $("logBox");
+  if(box.style.display === "block"){ box.style.display = "none"; return; }
+  const logs = (await Store.read("logs/" + ME.uid)) || {};
+  const arr = Object.values(logs).sort((a,b)=>b.ts-a.ts);
+  $("logRows").innerHTML = arr.map(l =>
+    "<tr><td>" + esc(l.type) + "<div class='muted' style='font-size:11px'>" +
+    new Date(l.ts).toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"}) +
+    "</div></td><td style='text-align:right;color:" + (l.amount>=0?"var(--gold2)":"#E9A79E") + "'>" +
+    (l.amount>=0?"+":"") + money(l.amount) + "</td></tr>").join("") ||
+    "<tr><td class='muted'>尚無紀錄</td></tr>";
+  box.style.display = "block";
+};
+
+/* ---- 大廳 ---- */
+$("btnLobby").onclick = async () => { await refresh(); renderGames(); show("p3"); };
+$("btnBack1").onclick = () => show("p2");
+$("btnBack3").onclick = () => show("p2");
+$("btnShop").onclick = async () => { await refresh(); renderItems(); show("p5"); };
+
+function renderGames(){
+  $("gameList").innerHTML = CFG.GAMES.map(g =>
+    "<div class='deco card'><div class='row'><h3 style='font-size:19px;color:var(--gold2)'>" +
+    g.icon + " " + g.name + "</h3><span class='tag'>" + g.type + "</span></div>" +
+    "<div class='muted' style='margin-top:6px'>" + g.desc + "</div>" +
+    "<div class='row' style='margin-top:10px'><span class='muted'>入場 " + g.fee +
+    "</span><span style='color:var(--gold2)'>勝出 +" + g.prize + "</span></div>" +
+    "<button class='btn' data-g='" + g.id + "'>付 費 入 場</button></div>").join("");
+  $("gameList").querySelectorAll("button[data-g]").forEach(b =>
+    b.onclick = () => enter(b.dataset.g));
+}
+
+async function enter(gid){
+  const g = gameById(gid);
+  if(ME.balance < g.fee){ alert("餘額不足，無法入場"); return; }
+  if(!confirm(g.name + "\n入場費 " + g.fee + " 元，確定支付？")) return;
+  await tx(ME.uid, "入場費 " + g.name, -g.fee);
+  const mid = "m" + now() + "_" + Math.random().toString(36).slice(2,6);
+  MATCH = { id:mid, uid:ME.uid, name:ME.name, game:g.id, gameName:g.name,
+            fee:g.fee, prize:g.prize, judge:g.judge, status:"playing", ts:now() };
+  await Store.write("matches/" + mid, MATCH);
+  await refresh();
+  $("mGame").textContent = g.name;
+  $("mResult").textContent = "—";
+  $("mNote").textContent = "已扣入場費 " + g.fee + " 元";
+  $("btnBack2").style.display = "none";
+  if(g.judge === "self"){
+    $("selfBox").style.display = "block";
+    $("mState").textContent = "遊戲進行中，結束後自行回報";
+  }else{
+    $("selfBox").style.display = "none";
+    $("mState").textContent = "請至關卡遊玩，等待工作人員判定";
+    startPoll();
+  }
+  show("p4");
+}
+
+$("btnWin").onclick = () => settle("won");
+$("btnLose").onclick = () => settle("lost");
+
+async function settle(st){
+  $("selfBox").style.display = "none";
+  const m = await Store.read("matches/" + MATCH.id);
+  if(m && m.status !== "playing"){ return finish(m.status); }
+  await Store.write("matches/" + MATCH.id + "/status", st);
+  finish(st);
+}
+
+function startPoll(){
+  clearInterval(poll);
+  poll = setInterval(async () => {
+    const m = await Store.read("matches/" + MATCH.id);
+    if(m && m.status !== "playing"){ clearInterval(poll); finish(m.status); }
+  }, 1200);
+}
+
+async function finish(st){
+  clearInterval(poll);
+  const paid = await Store.read("matches/" + MATCH.id + "/paid");
+  if(st === "won" && !paid){
+    await tx(ME.uid, "獎金 " + MATCH.gameName, MATCH.prize);
+    await Store.write("matches/" + MATCH.id + "/paid", true);
+  }
+  await refresh();
+  $("mState").textContent = st === "won" ? "恭喜勝出" : "本局失利";
+  $("mResult").textContent = st === "won" ? "+" + money(MATCH.prize) : "-" + money(MATCH.fee);
+  $("mResult").style.color = st === "won" ? "var(--gold2)" : "#E9A79E";
+  $("mNote").textContent = "目前結餘 " + money(ME.balance) + " 元";
+  $("btnBack2").style.display = "block";
+}
+$("btnBack2").onclick = () => show("p2");
+
+/* ---- 兌換 ---- */
+function renderItems(){
+  $("itemList").innerHTML = CFG.ITEMS.map(it =>
+    "<div class='deco card'><div class='row'><h3 style='font-size:18px;color:var(--gold2)'>" +
+    it.icon + " " + it.name + "</h3><span class='tag'>" + it.cost + " 幣</span></div>" +
+    "<button class='btn' data-i='" + it.id + "' " +
+    (ME.balance < it.cost ? "disabled" : "") + ">兌 換</button></div>").join("");
+  $("itemList").querySelectorAll("button[data-i]").forEach(b =>
+    b.onclick = () => redeem(b.dataset.i));
+}
+async function redeem(iid){
+  const it = CFG.ITEMS.find(x => x.id === iid);
+  if(!confirm("兌換「" + it.name + "」，扣除 " + it.cost + " 元？")) return;
+  try{
+    await tx(ME.uid, "兌換 " + it.name, -it.cost);
+    await refresh(); renderItems();
+    alert("兌換成功，請至兌換處出示畫面領取。");
+  }catch(e){ alert(e.message); }
+}
+
+/* ---- 啟動 ---- */
+(async () => {
+  await Store.init();
+  let uid = null;
+  try{ uid = sessionStorage.getItem("tycoon_uid"); }catch(e){}
+  if(uid){
+    const p = await Store.read("players/" + uid);
+    if(p){ ME = { uid, ...p }; await refresh(); show("p2"); }
+  }
+})();
+
+</script>
+</body>
+</html>

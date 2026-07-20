@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>大亨排行榜</title>
+<style>
+
+:root{
+  --deep:#0B2E21; --green:#14503A; --green2:#1B6547;
+  --gold:#D4AF37; --gold2:#F0D98B;
+  --cream:#F4EFE2; --paper:#FBF7EC;
+  --ink:#16211C; --red:#B03A2E; --dim:rgba(244,239,226,.6);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  margin:0; font-family:"Noto Serif TC",Georgia,"Times New Roman",serif;
+  background:
+    radial-gradient(circle at 50% 0%, #17573E 0%, var(--deep) 60%),
+    var(--deep);
+  color:var(--cream); min-height:100vh;
+}
+.deco{ border:2px solid var(--gold); border-radius:4px; position:relative;
+  background:linear-gradient(160deg, rgba(212,175,55,.10), rgba(0,0,0,.18)); }
+.deco:before{ content:""; position:absolute; inset:4px; border:1px solid rgba(212,175,55,.45);
+  border-radius:2px; pointer-events:none; }
+.wrap{ max-width:520px; margin:0 auto; padding:20px 16px 48px; }
+h1,h2,h3{ margin:0; letter-spacing:.12em; }
+.title{ font-size:26px; color:var(--gold2); text-align:center; }
+.sub{ text-align:center; font-size:12px; letter-spacing:.35em; color:var(--dim); margin-top:6px; }
+.rule{ height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:14px 0; }
+.btn{ display:block; width:100%; padding:15px; margin-top:12px; cursor:pointer;
+  font-family:inherit; font-size:17px; letter-spacing:.14em; border-radius:3px;
+  border:2px solid var(--gold); background:linear-gradient(180deg,var(--gold2),var(--gold));
+  color:#22160A; font-weight:700; }
+.btn:active{ transform:translateY(1px); }
+.btn.ghost{ background:transparent; color:var(--gold2); }
+.btn.danger{ background:transparent; border-color:var(--red); color:#E9A79E; }
+.btn:disabled{ opacity:.4; cursor:not-allowed; }
+input{ width:100%; padding:14px; font-size:17px; font-family:inherit; border-radius:3px;
+  border:2px solid var(--gold); background:var(--paper); color:var(--ink); }
+.card{ padding:16px; margin-top:12px; }
+.muted{ color:var(--dim); font-size:13px; line-height:1.7; }
+.bal{ font-size:52px; color:var(--gold2); text-align:center; letter-spacing:.04em;
+  font-variant-numeric:tabular-nums; }
+.err{ color:#F0A79E; font-size:14px; margin-top:10px; text-align:center; min-height:20px; }
+.row{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.tag{ font-size:11px; letter-spacing:.2em; padding:3px 8px; border:1px solid var(--gold);
+  border-radius:2px; color:var(--gold2); white-space:nowrap; }
+.page{ display:none; } .page.on{ display:block; }
+table{ width:100%; border-collapse:collapse; font-size:14px; }
+th,td{ padding:9px 8px; border-bottom:1px solid rgba(212,175,55,.25); text-align:left; }
+th{ color:var(--gold2); font-size:12px; letter-spacing:.16em; }
+.hatband{ width:74px; height:44px; margin:0 auto 6px; position:relative; }
+.hatband:before{ content:""; position:absolute; left:12px; top:0; width:50px; height:32px;
+  background:#0E1512; border:2px solid var(--gold); border-radius:3px 3px 0 0; }
+.hatband:after{ content:""; position:absolute; left:0; top:30px; width:74px; height:8px;
+  background:#0E1512; border:2px solid var(--gold); border-radius:4px; }
+
+.wrap{ max-width:1400px; padding:26px 30px; }
+.board{ display:grid; grid-template-columns:1fr 1fr; gap:10px 26px; }
+.lb{ display:flex; align-items:center; gap:14px; padding:12px 16px; margin-bottom:8px;
+  border:1px solid rgba(212,175,55,.35); border-radius:3px; background:rgba(0,0,0,.18); }
+.lb .rk{ width:52px; font-size:26px; color:var(--gold); text-align:center; }
+.lb .nm{ flex:1; font-size:26px; }
+.lb .bl{ font-size:30px; color:var(--gold2); font-variant-numeric:tabular-nums; }
+.lb.top1{ border-color:var(--gold); background:linear-gradient(90deg,rgba(212,175,55,.22),transparent); }
+@keyframes flash{ 0%{background:rgba(212,175,55,.5)} 100%{background:rgba(0,0,0,.18)} }
+.flash{ animation:flash 1.2s ease-out; }
+
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="row">
+    <div>
+      <h1 class="title" style="font-size:34px;text-align:left">大 亨 排 行 榜</h1>
+      <div class="sub" style="text-align:left">BANK OF KUYA &nbsp;/&nbsp; LIVE STANDINGS</div>
+    </div>
+    <div style="text-align:right">
+      <div class="tag">在場玩家 <span id="cnt">0</span></div>
+      <div class="muted" id="clock" style="margin-top:6px"></div>
+    </div>
+  </div>
+  <div class="rule"></div>
+  <div class="board" id="board"></div>
+</div>
+
+<script>
+
+/* ===================== 設定區（改這裡就好） ===================== */
+const CFG = {
+  /* Firebase：填入 config 並把 enabled 改成 true，即切換為多裝置連線模式。
+     留 false 時走本機模式（同一台電腦多分頁可互通，方便單機 DEMO）。 */
+  firebase: {
+    enabled: false,
+    config: {
+      apiKey: "",
+      authDomain: "",
+      databaseURL: "",   /* 亞洲區務必填完整 URL */
+      projectId: "",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: ""
+    }
+  },
+  SIGNUP_BONUS: 500,              /* 報到禮金 */
+  ADMIN_PASS: "kuya2026",         /* 後台密碼（DEMO 等級） */
+  /* B 案：風險分級定價 */
+  GAMES: [
+    { id:"g1", name:"快手骰王",  type:"手機", fee:30,  prize:50,  judge:"self",
+      desc:"手機上比手速，穩紮穩打的小額場",  icon:"&#127922;" },
+    { id:"g2", name:"團隊闖關",  type:"實體", fee:60,  prize:140, judge:"staff",
+      desc:"實體關卡，三人成隊，工作人員判定", icon:"&#127959;" },
+    { id:"g3", name:"大亨賭局",  type:"實體", fee:100, prize:250, judge:"staff",
+      desc:"押身家的大場，贏了翻倍有餘",       icon:"&#127974;" }
+  ],
+  /* 兌換品項（假資料，之後替換） */
+  ITEMS: [
+    { id:"i1", name:"大亨紀念徽章", cost:200, icon:"&#127894;" },
+    { id:"i2", name:"精品咖啡券",   cost:500, icon:"&#9749;" },
+    { id:"i3", name:"頭獎抽獎券",   cost:800, icon:"&#127915;" }
+  ]
+};
+/* =============================================================== */
+
+/* ============ 資料層：本機模式 / Firebase 模式 共用介面 ============ */
+const KEY = "tycoon_demo_db";
+const blank = () => ({ players:{}, matches:{}, logs:{} });
+
+let mem = blank();
+function lsGet(){
+  try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : blank(); }
+  catch(e){ return mem; }
+}
+function lsSet(d){
+  mem = d;
+  try { localStorage.setItem(KEY, JSON.stringify(d)); } catch(e){}
+}
+
+let FB = null; /* { db, ops } */
+async function initFirebase(){
+  if(!CFG.firebase.enabled) return null;
+  const app = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+  const dbm = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+  const a = app.initializeApp(CFG.firebase.config);
+  const db = dbm.getDatabase(a, CFG.firebase.config.databaseURL);
+  FB = { db, m: dbm };
+  return FB;
+}
+
+const Store = {
+  ready: false,
+  async init(){
+    if(CFG.firebase.enabled){ await initFirebase(); }
+    this.ready = true;
+  },
+  async all(){
+    if(FB){
+      const s = await FB.m.get(FB.m.ref(FB.db, "/"));
+      const v = s.val() || {};
+      return { players:v.players||{}, matches:v.matches||{}, logs:v.logs||{} };
+    }
+    return lsGet();
+  },
+  async write(path, val){
+    if(FB){ await FB.m.set(FB.m.ref(FB.db, path), val); return; }
+    const d = lsGet(); const p = path.split("/").filter(Boolean);
+    let n = d; for(let i=0;i<p.length-1;i++){ n[p[i]] = n[p[i]] || {}; n = n[p[i]]; }
+    if(val === null) delete n[p[p.length-1]]; else n[p[p.length-1]] = val;
+    lsSet(d);
+  },
+  async read(path){
+    if(FB){ const s = await FB.m.get(FB.m.ref(FB.db, path)); return s.val(); }
+    const d = lsGet(); const p = path.split("/").filter(Boolean);
+    let n = d; for(const k of p){ if(n == null) return null; n = n[k]; }
+    return n === undefined ? null : n;
+  },
+  async wipe(){
+    if(FB){ await FB.m.set(FB.m.ref(FB.db, "/"), null); return; }
+    lsSet(blank());
+  }
+};
+
+/* ---------- 共用工具 ---------- */
+const uidOf = n => "p_" + n.trim().replace(/[.#$\[\]\/]/g,"_");
+const money = n => (n||0).toLocaleString("en-US");
+const now = () => Date.now();
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const gameById = id => CFG.GAMES.find(g => g.id === id);
+
+/* 記一筆帳（同時更新餘額，先讀後寫） */
+async function tx(uid, type, amount, note){
+  const p = await Store.read("players/" + uid);
+  if(!p) throw new Error("查無此帳戶");
+  const nb = (p.balance || 0) + amount;
+  if(nb < 0) throw new Error("餘額不足");
+  p.balance = nb; p.updatedAt = now();
+  await Store.write("players/" + uid, p);
+  const tid = "t" + now() + "_" + Math.random().toString(36).slice(2,6);
+  await Store.write("logs/" + uid + "/" + tid,
+    { type, amount, note: note || "", balance: nb, ts: now() });
+  return p;
+}
+
+const $ = id => document.getElementById(id);
+let prev = {};
+setInterval(() => $("clock").textContent = new Date().toLocaleTimeString("zh-TW"), 1000);
+
+async function tick(){
+  const d = await Store.all();
+  const ps = Object.entries(d.players || {}).map(([uid,p]) => ({ uid, ...p }))
+              .sort((a,b) => b.balance - a.balance).slice(0, 20);
+  $("cnt").textContent = ps.length;
+  $("board").innerHTML = ps.map((p,i) =>
+    "<div class='lb " + (i===0?"top1":"") + (prev[p.uid]!==undefined && prev[p.uid]!==p.balance ? " flash":"") +
+    "'><div class='rk'>" + (i+1) + "</div><div class='nm'>" + esc(p.name) +
+    "</div><div class='bl'>" + money(p.balance) + "</div></div>").join("")
+    || "<div class='muted' style='font-size:22px'>等待玩家報到⋯</div>";
+  ps.forEach(p => prev[p.uid] = p.balance);
+}
+(async () => { await Store.init(); tick(); setInterval(tick, 1500); })();
+
+</script>
+</body>
+</html>
