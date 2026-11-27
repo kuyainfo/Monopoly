@@ -363,7 +363,7 @@ button,input,select{font-family:inherit;font-size:16px;color:inherit}
     <div class="notice" id="hRelief" style="display:none">💸<div style="flex:1">餘額快見底了，可以領一次救濟金</div><button class="btn inline pri" id="hReliefBtn">領取</button></div>
     <div class="banner" id="hRace"><span class="bi">🏇</span><div><div class="bt" id="hRaceT">大富翁賽馬</div><div class="bs" id="hRaceS">—</div></div><span class="bc" id="hRaceCd"></span></div>
     <div class="tiles" id="hTiles"></div>
-    <div class="minis"><button class="btn" data-go="pgHunt">🔍 尋寶</button><button class="btn" data-go="pgQr">🔳 我的 QR</button><button class="btn" data-go="pgLog">📜 紀錄</button></div>
+    <div class="minis"><button class="btn" data-go="pgHunt" id="hHuntBtn">🔍 尋寶</button><button class="btn" data-go="pgQr">🔳 我的 QR</button><button class="btn" data-go="pgLog">📜 紀錄</button></div>
   </div>
 
   <!-- 賽馬 -->
@@ -467,6 +467,7 @@ const GC_DEFAULTS = {
   bonus: 1000,                                  /* 開通禮金 */
   relief: { amount: 200, below: 50 },           /* 救濟金：餘額低於 below 可領一次 */
   hunt: {
+    on: false,                                  /* 這場有沒有尋寶（後台勾選；預設不勾） */
     reward: 200, allBonus: 500,                 /* 每個線索 +200，全部找齊再 +500 */
     clues: [
       { id:"c1", token:"mQ4tZ8", name:"起點的薪水袋", hint:"一切從起點開始" },
@@ -1489,6 +1490,7 @@ function renderHome(){
   $("hTableS").textContent = ME.table ? "桌榜在團體賽後公布" : "迎賓結束後掃桌上 QR";
   $("hRelief").style.display = (!ME.relief && ME.bal < c.relief.below && !GC.state.locked) ? "flex" : "none";
   $("hReliefBtn").textContent = "領 ＋" + money(c.relief.amount);
+  const hOn = !!c.hunt.on; $("hHuntBtn").style.display = hOn ? "" : "none"; $("hHuntBtn").parentNode.style.gridTemplateColumns = "repeat(" + (hOn ? 3 : 2) + ",1fr)";
   if(!$("hTiles").children.length) $("hTiles").innerHTML = Object.entries(PKX.GAMES).map(([k, g]) => '<div class="tile" style="--c:' + g.c + '" data-g="' + k + '"><div class="band">P K</div><div class="ic">' + g.ic + '</div><div class="nm">' + g.n + '</div><div class="ds">' + g.tag + '</div></div>').join("");
   $$("#hTiles .tile").forEach(e => e.onclick = () => openPk(e.dataset.g));
 }
@@ -2478,6 +2480,7 @@ function pkResultHtml(m, again){
 /* ================= 尋寶 ================= */
 const huntCount = () => GC.cfg.hunt.clues.filter(c => ME && ME.hunt && ME.hunt[c.id]).length;
 function renderHunt(){
+  if(!GC.cfg.hunt.on){ show("pgHome"); return; }
   const h = GC.cfg.hunt, n = huntCount();
   $("tCount").textContent = "已找到 " + n + " / " + h.clues.length; $("tEach").textContent = "每個 ＋" + h.reward;
   $("tAll").textContent = (ME.hunt && ME.hunt._all) ? "全部找齊！已獲得加碼 ＋" + money(h.allBonus) : "全部找齊再加碼 ＋" + money(h.allBonus);
@@ -2485,6 +2488,7 @@ function renderHunt(){
 }
 $("tScan").onclick = () => Scanner.open(txt => { const m = String(txt).match(/[?&]clue=([A-Za-z0-9]+)/); if(m) claimClue(m[1]); else { const t = GC.parseTable(txt); if(t) doBind(t); else toast("這不是尋寶線索"); } });
 async function claimClue(token){
+  if(!GC.cfg.hunt.on) return toast("這場沒有尋寶活動");
   const h = GC.cfg.hunt, clue = h.clues.find(c => c.token === token);
   if(!clue) return toast("這張 QR 不是有效的線索");
   if(GC.state.locked || GC.phase() !== "welcome") return toast("迎賓已結束，尋寶關閉");
@@ -2726,7 +2730,7 @@ function renderFinal(){
   const qt = GC.parseTable(location.search); if(qt) pendSet("t", String(qt));
   show(GC.state.locked ? "pgBoot" : "pgJoin");
   if(GC.state.locked) $("bootMsg").textContent = "活動已結算";
-  else if(QS.get("clue")) $("jErr").textContent = "先開通錢包，線索會自動幫你加上";
+  else if(QS.get("clue") && GC.cfg.hunt.on) $("jErr").textContent = "先開通錢包，線索會自動幫你加上";
   else if(QS.get("pk")) $("jErr").textContent = "先開通錢包，就能跟對方 PK";
   else if(qt) $("jErr").textContent = "先開通錢包，開通後自動確認第 " + qt + " 桌";
 })();

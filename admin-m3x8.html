@@ -285,7 +285,7 @@ td.n{text-align:right;font-family:var(--num)}
   <!-- 玩家 -->
   <div id="tPl" class="tab hide">
     <div class="lay full"><div class="box c12"><div class="row"><input class="input" id="plQ" placeholder="搜尋姓名或編號" style="max-width:280px"><span class="muted" id="plN"></span></div>
-      <div class="tscroll fill" style="margin-top:8px"><table><thead><tr><th>#</th><th>姓名</th><th>編號</th><th>桌</th><th style="text-align:right">餘額</th><th>尋寶</th><th>救濟</th><th>加扣幣</th><th>改桌號</th></tr></thead><tbody id="plT"></tbody></table></div></div></div>
+      <div class="tscroll fill" style="margin-top:8px"><table><thead><tr><th>#</th><th>姓名</th><th>編號</th><th>桌</th><th style="text-align:right">餘額</th><th id="thHunt">尋寶</th><th>救濟</th><th>加扣幣</th><th>改桌號</th></tr></thead><tbody id="plT"></tbody></table></div></div></div>
   </div>
 
   <!-- QR -->
@@ -294,7 +294,7 @@ td.n{text-align:right;font-family:var(--num)}
       <div class="btns noprint"><button class="btn sm" onclick="window.print()">🖨 列印這一頁</button></div>
       <h2 style="margin-top:12px">頁面連結</h2><div class="qgrid" id="qPages"></div>
       <h2 style="margin-top:16px">桌卡 QR（放在每一桌，迎賓結束後掃來確認桌號）</h2><div class="qgrid" id="qTables"></div>
-      <h2 style="margin-top:16px">尋寶線索（把卡片藏在現場）</h2><div class="qgrid" id="qHunt"></div>
+      <h2 style="margin-top:16px" id="qHuntH">尋寶線索（把卡片藏在現場）</h2><div class="qgrid" id="qHunt"></div>
     </div>
   </div>
 
@@ -345,6 +345,7 @@ const GC_DEFAULTS = {
   bonus: 1000,                                  /* 開通禮金 */
   relief: { amount: 200, below: 50 },           /* 救濟金：餘額低於 below 可領一次 */
   hunt: {
+    on: false,                                  /* 這場有沒有尋寶（後台勾選；預設不勾） */
     reward: 200, allBonus: 500,                 /* 每個線索 +200，全部找齊再 +500 */
     clues: [
       { id:"c1", token:"mQ4tZ8", name:"起點的薪水袋", hint:"一切從起點開始" },
@@ -1732,8 +1733,8 @@ function renderPlayers(){
   const q = $("plQ").value.trim(), arr = ranked();
   const list = arr.map((p, i) => Object.assign({ rank: i + 1 }, p)).filter(p => !q || p.name.includes(q) || p.code === q).slice(0, 200);
   $("plN").textContent = "共 " + arr.length + " 人" + (q ? "，符合 " + list.length : "") + (list.length >= 200 ? "（只顯示前 200）" : "");
-  const nClue = GC.cfg.hunt.clues.length;
-  $("plT").innerHTML = list.map(p => '<tr><td>' + p.rank + '</td><td>' + esc(p.name) + '</td><td>' + p.code + '</td><td>' + (p.table || '<span class="muted">未綁</span>') + '</td><td class="n">' + money(p.bal) + '</td><td>' + GC.cfg.hunt.clues.filter(c => p.hunt && p.hunt[c.id]).length + '/' + nClue + '</td><td>' + (p.relief ? "已領" : "") + '</td>' +
+  const nClue = GC.cfg.hunt.clues.length; $("thHunt").style.display = GC.cfg.hunt.on ? "" : "none";
+  $("plT").innerHTML = list.map(p => '<tr><td>' + p.rank + '</td><td>' + esc(p.name) + '</td><td>' + p.code + '</td><td>' + (p.table || '<span class="muted">未綁</span>') + '</td><td class="n">' + money(p.bal) + '</td>' + (GC.cfg.hunt.on ? '<td>' + GC.cfg.hunt.clues.filter(c => p.hunt && p.hunt[c.id]).length + '/' + nClue + '</td>' : '') + '<td>' + (p.relief ? "已領" : "") + '</td>' +
     '<td><input type="number" placeholder="+/- 金額" style="width:90px;padding:4px;border:2px solid var(--ink);border-radius:6px" id="adj_' + p.pid + '"> <button class="btn inline" data-adj="' + p.pid + '">送出</button></td>' +
     '<td><input type="number" placeholder="桌號" style="width:64px;padding:4px;border:2px solid var(--ink);border-radius:6px" id="tb_' + p.pid + '"> <button class="btn inline" data-tb="' + p.pid + '">改</button></td></tr>').join("");
   $$("[data-adj]").forEach(b => b.onclick = async () => {
@@ -1752,7 +1753,7 @@ function renderPlayers(){
 const STOCK_TYPES = { "穩健": [0.6, 0.3, 0.1], "成長": [0.25, 0.55, 0.2], "投機": [0.15, 0.25, 0.6], "混合": [0.34, 0.33, 0.33] };
 const SL = ["A","B","C","D","E"];
 const CFG_FIELDS = {
-  wel: [["bonus","開通禮金"],["relief.amount","救濟金金額"],["relief.below","餘額低於多少可領救濟金"],["hunt.reward","尋寶每個線索"],["hunt.allBonus","尋寶全部找齊加碼"]],
+  wel: [["bonus","開通禮金"],["relief.amount","救濟金金額"],["relief.below","餘額低於多少可領救濟金"],["hunt.on","這場有尋寶","chk"],["hunt.reward","尋寶每個線索"],["hunt.allBonus","尋寶全部找齊加碼"]],
   horse: [["horse.betSec","下注秒數"],["horse.runSec","比賽長度（秒）"],["horse.resultSec","開獎畫面停留（秒）"],["horse.maxBet","每人每場最多押"],["horse.take","莊家抽成 %","pct"],["horse.seed","每個彩池底池"],
     ["w","馬匹和騎師的名字在「馬匹・騎師」分頁"]],
   hpool: HORSE.HPOOL.map((H, i) => ["horse.hpool." + i, (i + 1), "pname", HORSE.STYLE_NAME[H.s] + (H.t.length ? "・" + H.t.map(t => HORSE.TRAIT[t]).join("・") : "")]),
@@ -1775,6 +1776,7 @@ function fieldHtml([k, l, t, opt]){
   if(t === "pname") return '<div class="pname"><span>' + l + '</span><input data-k="' + k + '" data-ty="text" value="' + esc(getK(GC.cfg, k) || "") + '"><span class="muted">' + esc(opt) + '</span></div>';
   if(t === "pair") return '<div class="pair"><span>' + l + '</span><input data-k="' + k + '" data-ty="text" value="' + esc(getK(GC.cfg, k) || "") + '"><input data-k="' + opt + '" data-ty="text" value="' + esc(getK(GC.cfg, opt) || "") + '"></div>';
   const v = getK(GC.cfg, k);
+  if(t === "chk") return '<span>' + l + '</span><label style="display:flex;align-items:center;gap:6px;font-weight:700;cursor:pointer"><input type="checkbox" style="width:20px;height:20px" data-k="' + k + '" data-ty="bool"' + (v ? " checked" : "") + '>開啟</label>';
   if(t === "sel") return '<span>' + l + '</span><select data-k="' + k + '" data-ty="num">' + opt.map(([ov, ol]) => '<option value="' + ov + '"' + (+v === ov ? " selected" : "") + '>' + ol + '</option>').join("") + '</select>';
   if(t === "ptype") return '<span>' + l + '</span><select data-k="' + k + '" data-ty="ptype">' + Object.keys(STOCK_TYPES).map(o => '<option' + (v === o ? " selected" : "") + '>' + o + '</option>').join("") + '</select>';
   const shown = t === "list" ? (v || []).join(",") : t === "pct" ? Math.round((+v || 0) * 1000) / 10 : v;
@@ -1783,13 +1785,18 @@ function fieldHtml([k, l, t, opt]){
 function fillCfg(force, only){
   const tl = $("trtList"); if(tl) tl.innerHTML = Object.keys(HORSE.TRAIT).map(t => '<b>' + HORSE.TRAIT[t] + '</b><span>' + HORSE.TRAIT_TIP[t] + '</span>').join("");
   $$("[data-cfg]").forEach(box => { if(only && box.dataset.cfg !== only) return; if(!force && (box.dataset.dirty || box.contains(document.activeElement))) return; delete box.dataset.dirty; box.innerHTML = CFG_FIELDS[box.dataset.cfg].map(fieldHtml).join(""); });
+  huntDim();
 }
+/* 尋寶沒勾時，獎金欄位變灰 */
+function huntDim(){ const ck = document.querySelector('[data-k="hunt.on"]'); if(!ck) return; $$('[data-k="hunt.reward"],[data-k="hunt.allBonus"]').forEach(i => { i.disabled = !ck.checked; i.style.opacity = ck.checked ? "" : ".4"; }); }
+document.addEventListener("change", e => { if(e.target && e.target.dataset && e.target.dataset.k === "hunt.on") huntDim(); });
 /* 有改到但還沒按儲存的區塊，不會被別區的儲存蓋掉 */
 $$("[data-cfg]").forEach(box => box.addEventListener("input", () => box.dataset.dirty = "1"));
 $$("[data-save]").forEach(b => b.onclick = async () => {
   const d = clone(GC.cfg), box = document.querySelector('[data-cfg="' + b.dataset.save + '"]');
   box.querySelectorAll("[data-k]").forEach(i => { const k = i.dataset.k, ty = i.dataset.ty, v = String(i.value).trim();
-    if(ty === "list") setK(d, k, v.split(/[,，\s]+/).filter(Boolean).map(Number));
+    if(ty === "bool") setK(d, k, !!i.checked);
+    else if(ty === "list") setK(d, k, v.split(/[,，\s]+/).filter(Boolean).map(Number));
     else if(ty === "text") setK(d, k, v);
     else if(ty === "pct") setK(d, k, (+v || 0) / 100);
     else if(ty === "ptype"){ setK(d, k, v); const idx = +k.split(".")[2]; d.stock.list[idx].w = STOCK_TYPES[v].slice(); }
@@ -1804,7 +1811,8 @@ function renderQr(){
   $("qPages").innerHTML = qcard("玩家入口", "掃了就能開通錢包", pageUrl(GC_FILES.app)) + qcard("電視牆", "投影用（雙擊全螢幕）", pageUrl(GC_FILES.tv));
   const n = +GC.cfg.team.tables || 0;
   $("qTables").innerHTML = Array.from({ length: n }, (_, i) => qcard("第 " + (i + 1) + " 桌", "掃描確認桌號", pageUrl(GC_FILES.app, { t: i + 1 }))).join("");
-  $("qHunt").innerHTML = GC.cfg.hunt.clues.map(c => qcard(c.name, c.hint, pageUrl(GC_FILES.app, { clue: c.token }))).join("");
+  const hOn = !!GC.cfg.hunt.on; $("qHuntH").style.display = $("qHunt").style.display = hOn ? "" : "none";
+  $("qHunt").innerHTML = !hOn ? "" : GC.cfg.hunt.clues.map(c => qcard(c.name, c.hint, pageUrl(GC_FILES.app, { clue: c.token }))).join("");
 }
 
 /* ---------- 結算 / 清空 ---------- */

@@ -214,6 +214,7 @@ const GC_DEFAULTS = {
   bonus: 1000,                                  /* 開通禮金 */
   relief: { amount: 200, below: 50 },           /* 救濟金：餘額低於 below 可領一次 */
   hunt: {
+    on: false,                                  /* 這場有沒有尋寶（後台勾選；預設不勾） */
     reward: 200, allBonus: 500,                 /* 每個線索 +200，全部找齊再 +500 */
     clues: [
       { id:"c1", token:"mQ4tZ8", name:"起點的薪水袋", hint:"一切從起點開始" },
