@@ -112,6 +112,7 @@ button,input,select{font-family:inherit;font-size:16px;color:inherit}
 .tile .ds{font-size:11px;color:var(--mute)}
 .minis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
 .minis .btn{margin:0;padding:10px 4px;font-size:13px}
+.minis.four{gap:6px}.minis.four .btn{padding:10px 0;font-size:12px;white-space:nowrap;letter-spacing:0}
 .notice{background:#FFE58A;border:2px solid var(--ink);border-radius:10px;padding:9px 11px;margin-top:12px;font-size:13px;display:flex;gap:8px;align-items:center}
 .okbox{background:#FFE9A8;border:2px solid var(--ink);border-radius:10px;padding:10px 12px;font-weight:900;margin-top:10px;text-align:center}
 .lbl{font-size:12px;font-weight:700;color:var(--mute);margin:14px 0 4px}
@@ -363,7 +364,7 @@ button,input,select{font-family:inherit;font-size:16px;color:inherit}
     <div class="notice" id="hRelief" style="display:none">💸<div style="flex:1">餘額快見底了，可以領一次救濟金</div><button class="btn inline pri" id="hReliefBtn">領取</button></div>
     <div class="banner" id="hRace"><span class="bi">🏇</span><div><div class="bt" id="hRaceT">大富翁賽馬</div><div class="bs" id="hRaceS">—</div></div><span class="bc" id="hRaceCd"></span></div>
     <div class="tiles" id="hTiles"></div>
-    <div class="minis"><button class="btn" data-go="pgHunt" id="hHuntBtn">🔍 尋寶</button><button class="btn" data-go="pgQr">🔳 我的 QR</button><button class="btn" data-go="pgLog">📜 紀錄</button></div>
+    <div class="minis"><button class="btn" data-go="pgHunt" id="hHuntBtn">🔍 尋寶</button><button class="btn" id="hScanBtn">📷 掃描</button><button class="btn" data-go="pgQr">🔳 我的 QR</button><button class="btn" data-go="pgLog">📜 紀錄</button></div>
   </div>
 
   <!-- 賽馬 -->
@@ -1401,6 +1402,7 @@ addEventListener("popstate", () => {
 });
 $("topBack").onclick = () => { if(CUR === "pgPk" && pkActive()) return toast("對戰進行中"); if(history.state && history.state.p && history.state.p !== phaseHome()) history.back(); else show(phaseHome()); };
 $$("[data-go]").forEach(e => e.onclick = () => show(e.dataset.go));
+$("hScanBtn").onclick = () => scanAny();
 
 /* ---------- 開通 / 找回 ---------- */
 $("jGo").onclick = async () => {
@@ -1467,6 +1469,8 @@ async function doBind(t){
   } catch(e){ toast(e.message); }
 }
 const scanTable = () => Scanner.open(txt => doBind(GC.parseTable(txt)));
+/* 首頁的「📷 掃描」：桌卡、尋寶線索都能掃（尋寶沒開時只認桌卡） */
+const scanAny = () => Scanner.open(txt => { const m = String(txt).match(/[?&]clue=([A-Za-z0-9]+)/); if(m && GC.cfg.hunt.on) return claimClue(m[1]); const t = GC.parseTable(txt); if(t) return doBind(t); toast(GC.cfg.hunt.on ? "這不是桌卡或尋寶線索" : (m ? "這場沒有尋寶活動" : "這不是桌卡 QR")); });
 
 /* ---------- 畫面 ---------- */
 function render(){
@@ -1490,7 +1494,7 @@ function renderHome(){
   $("hTableS").textContent = ME.table ? "桌榜在團體賽後公布" : "迎賓結束後掃桌上 QR";
   $("hRelief").style.display = (!ME.relief && ME.bal < c.relief.below && !GC.state.locked) ? "flex" : "none";
   $("hReliefBtn").textContent = "領 ＋" + money(c.relief.amount);
-  const hOn = !!c.hunt.on; $("hHuntBtn").style.display = hOn ? "" : "none"; $("hHuntBtn").parentNode.style.gridTemplateColumns = "repeat(" + (hOn ? 3 : 2) + ",1fr)";
+  const hOn = !!c.hunt.on; $("hHuntBtn").style.display = hOn ? "" : "none"; $("hHuntBtn").parentNode.style.gridTemplateColumns = "repeat(" + (hOn ? 4 : 3) + ",1fr)"; $("hHuntBtn").parentNode.classList.toggle("four", hOn);
   if(!$("hTiles").children.length) $("hTiles").innerHTML = Object.entries(PKX.GAMES).map(([k, g]) => '<div class="tile" style="--c:' + g.c + '" data-g="' + k + '"><div class="band">P K</div><div class="ic">' + g.ic + '</div><div class="nm">' + g.n + '</div><div class="ds">' + g.tag + '</div></div>').join("");
   $$("#hTiles .tile").forEach(e => e.onclick = () => openPk(e.dataset.g));
 }
