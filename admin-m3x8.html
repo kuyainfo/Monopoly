@@ -71,21 +71,74 @@ button,input,select{font-family:inherit;font-size:16px;color:inherit}
 .stars{color:var(--gold);letter-spacing:1px}.stars i{color:#d9d2bf;font-style:normal}
 @media (max-width:340px){ body{font-size:14px} .btn{font-size:15px} }
 
-body{background:#2B2A26}
+body{background:var(--board)}
 #gate{max-width:360px;margin:12vh auto;background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:22px;box-shadow:0 8px 0 var(--ink)}
 #gate h1{margin:0 0 12px;font-size:22px;text-align:center}
-#app{max-width:1680px;margin:0 auto;padding:14px 16px 40px}
+#app{max-width:1760px;margin:0 auto;padding:14px 16px 40px}
 .hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--edge);color:#fff;border:3px solid var(--ink);border-radius:12px;padding:10px 14px}
 .hd h1{font-size:18px;margin:0;flex:1;min-width:200px}
 .pill{display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:rgba(255,255,255,.18);font-weight:700}
 .pill.ok{background:#E4F4E8;color:var(--ok)}.pill.bad{background:#FBE2E2;color:var(--bad)}
-.phases{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
-.phases button{padding:12px 6px;border:3px solid var(--ink);border-radius:10px;background:var(--paper);font-weight:900;font-size:16px;cursor:pointer}
-.phases button.on{background:var(--ink);color:#fff}
-.phases button small{display:block;font-weight:400;font-size:12px;opacity:.8}
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
-.tabs button{padding:8px 14px;border:2px solid var(--ink);border-radius:99px;background:#fff;font-weight:700;cursor:pointer}
-.tabs button.on{background:var(--gold)}
+/* ---- v2.0：階段進度條 ---- */
+.stepbar{display:flex;align-items:center;gap:12px;margin-top:12px;background:var(--paper);border:3px solid var(--ink);border-radius:12px;padding:8px 10px}
+.steps{display:flex;align-items:center;gap:4px;flex:1;min-width:0;flex-wrap:wrap}
+.steps button{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border:2px solid transparent;border-radius:10px;background:none;cursor:pointer;text-align:left;font-weight:900;font-size:15px;color:var(--mute)}
+.steps button i{font-style:normal;width:26px;height:26px;border-radius:50%;border:2px solid var(--mute);display:flex;align-items:center;justify-content:center;font:14px var(--num);flex:none}
+.steps button small{display:block;font-weight:400;font-size:11.5px;color:var(--mute)}
+.steps button:hover{background:rgba(0,0,0,.04)}
+.steps button.done{color:var(--ink)}.steps button.done i{background:var(--edge);border-color:var(--edge);color:#fff}
+.steps button.on{background:var(--gold2);border-color:var(--ink);color:var(--ink)}.steps button.on i{background:var(--ink);border-color:var(--ink);color:#fff}
+.steps button.on small{color:var(--ink)}
+.steps .arr{color:var(--board2);font-size:20px;font-weight:900}
+.stepbar .now{font-size:12px;color:var(--mute);white-space:nowrap}
+.stepbar #bNext{width:auto;margin:0;padding:10px 16px;white-space:nowrap}
+/* ---- v2.0：左側功能列 ---- */
+.shell{display:grid;grid-template-columns:210px minmax(0,1fr);gap:14px;margin-top:12px;align-items:start}
+.snav{position:sticky;top:12px;background:var(--paper);border:3px solid var(--ink);border-radius:12px;padding:8px}
+.sn-it{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:2px solid transparent;border-radius:8px;background:none;font-size:15px;font-weight:700;color:var(--ink);cursor:pointer;text-align:left}
+.sn-it:hover{background:rgba(0,0,0,.05)}
+.sn-it span.l{flex:1;min-width:0}
+.sn-it.on{background:var(--gold);border-color:var(--ink)}
+.sn-it.hascur{color:var(--red)}
+.sn-it.sub{padding:6px 10px 6px 28px;font-size:14px;font-weight:700}
+.sn-it .chev{color:var(--mute);transition:transform .15s;font-size:12px}.sn-it.open .chev{transform:rotate(90deg)}
+.sn-it .live{flex:none}
+.sn-bd{flex:none;font-size:11.5px;font-weight:900;border-radius:10px;padding:0 7px;line-height:1.7;background:var(--red);color:#fff}
+.sn-bd.w{background:var(--gold2);color:var(--ink);border:1px solid var(--ink)}
+.sn-sep{height:0;border-top:2px dashed var(--board2);margin:8px 4px}
+.sn-tip{font-size:11.5px;color:var(--mute);line-height:1.6;padding:8px 6px 2px}
+/* ---- v2.0：頁面標題列 ---- */
+.ph{display:flex;align-items:flex-end;gap:12px;justify-content:space-between}
+.ph h1{margin:0;font-size:22px;font-weight:900}
+.ph .sub{font-size:13px;color:var(--mute)}
+.ph .btn{width:auto;margin:0;white-space:nowrap}
+.ph .btn.dwb{background:#fff;border-width:3px;font-size:15px;padding:9px 16px}
+/* ---- v2.0：設定抽屜（右側滑出，不擋左邊操作） ---- */
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(470px,94vw);background:var(--board);border-left:3px solid var(--ink);box-shadow:-10px 0 0 rgba(30,27,22,.12);z-index:60;display:flex;flex-direction:column;transform:translateX(105%);transition:transform .22s ease}
+.drawer.open{transform:none}
+.dw-hd{display:flex;align-items:center;gap:10px;background:var(--edge);color:#fff;padding:12px 14px;border-bottom:3px solid var(--ink)}
+.dw-hd b{flex:1;font-size:17px}
+.dw-hd button{background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:8px;width:34px;height:34px;font-size:16px;font-weight:900;cursor:pointer;line-height:1}
+.dw-sub{font-size:12.5px;color:var(--mute);padding:8px 14px 0}
+.dw-body{flex:1;overflow:auto;padding:10px 14px 20px;display:flex;flex-direction:column;gap:12px}
+.dw-body .box{display:flex;flex-direction:column}
+.dw-body .box>.cfg{margin-bottom:12px}
+/* ---- v2.0：總覽現況頁 ---- */
+.todo{display:flex;flex-direction:column;gap:8px}
+.td{display:flex;align-items:center;gap:10px;padding:9px 12px;border:2px solid var(--ink);border-radius:10px;background:#fff}
+.td .ic{font-size:18px;flex:none}
+.td span.t{flex:1;min-width:0}.td b{display:block;font-size:14.5px}.td small{display:block;color:var(--mute);font-size:12.5px}
+.td.w{background:#FFF3D6}.td.bad{background:#FBE2E2}.td.ok{background:#E9F5EC}
+.td .btn{width:auto;margin:0;white-space:nowrap}
+.bigs{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.big{display:block;text-align:left;padding:14px;border:3px solid var(--ink);border-radius:12px;background:#fff;cursor:pointer;box-shadow:0 4px 0 var(--ink);font-weight:900;font-size:16px}
+.big:active{transform:translateY(2px);box-shadow:0 2px 0 var(--ink)}
+.big small{display:block;font-weight:400;font-size:12.5px;color:var(--mute);margin-top:2px}
+.big.pri{background:var(--gold2)}
+@media (max-width:1280px){.stepbar .now{display:none}}
+/* 多了左側功能列，四欄的團體賽在 1380px 以下改成 2×2 */
+@media (max-width:1380px){.shell .lay>.c3{grid-column:span 6}.shell .lay.full:has(>.c3){height:auto}.shell .lay.full:has(>.c3) .fill{max-height:360px}}
+@media (max-width:1000px){.shell{grid-template-columns:1fr}.snav{position:static;display:flex;flex-wrap:wrap;gap:4px}.sn-it,.sn-it.sub{width:auto;padding:6px 10px}.sn-sep,.sn-tip,.sn-it .chev{display:none}.stepbar{flex-wrap:wrap}}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-top:12px;align-items:start}
 .tscroll{max-height:260px;overflow:auto;border:2px solid var(--board2);border-radius:8px}
 /* ---- 版面：12 欄格線；同一列等高；「full」列撐滿螢幕剩餘高度，表格在框內捲動 ---- */
@@ -99,10 +152,6 @@ body{background:#2B2A26}
 .stack{display:flex;flex-direction:column;gap:12px;min-height:0}
 .stack>.box{flex:none}.stack>.box:last-child{flex:1}
 .feed div{padding:4px 0;border-bottom:1px dashed var(--board2)}
-.setz{margin-top:16px;border-top:2px dashed rgba(255,255,255,.25);padding-top:10px}
-.setz summary{cursor:pointer;color:#fff;font-weight:900;font-size:15px;list-style:none;display:flex;align-items:baseline;gap:10px}
-.setz summary::before{content:"▸";transition:.15s}.setz[open] summary::before{transform:rotate(90deg)}
-.setz summary small{font-weight:400;font-size:12px;opacity:.6}
 .lay .box>[data-save]{margin-top:auto}
 .lay .box>.cfg{margin-bottom:12px}
 .cfg.w3{grid-template-columns:1fr 130px 1fr 130px 1fr 130px;column-gap:22px}
@@ -141,7 +190,7 @@ td.n{text-align:right;font-family:var(--num)}
 .qt{font-weight:900;font-size:16px}.qs{font-size:12px;color:var(--mute);word-break:break-all}
 .live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:4px;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.2}}
-@media print{body{background:#fff}.hd,.phases,.tabs,.noprint{display:none!important}#app{padding:0}.box{border:0}}
+@media print{body{background:#fff}.hd,.stepbar,.snav,.ph,.drawer,.noprint{display:none!important}.shell{display:block}#app{padding:0}.box{border:0}}
 </style>
 </head>
 <body>
@@ -158,27 +207,27 @@ td.n{text-align:right;font-family:var(--num)}
     <h1>🎩 大富翁錢包・後台</h1>
     <span class="pill" id="hMode">—</span><span class="pill" id="hConn">—</span><span class="pill" id="hClock">--:--:--</span>
   </div>
-  <div class="phases" id="phases">
-    <button data-p="welcome">① 迎賓<small>賽馬＋4 款 PK</small></button>
-    <button data-p="team">② 團體賽<small>綁桌・抽牌・轉盤</small></button>
-    <button data-p="stock">③ 股票大亨<small>錢包 × 100 帶入</small></button>
-    <button data-p="final">④ 結算<small>鎖定・頒獎</small></button>
+  <div class="stepbar noprint">
+    <div class="steps" id="phases">
+      <button data-p="welcome"><i>1</i><span>迎賓<small>賽馬＋4 款 PK</small></span></button><b class="arr">›</b>
+      <button data-p="team"><i>2</i><span>團體賽<small>綁桌・抽牌・轉盤</small></span></button><b class="arr">›</b>
+      <button data-p="stock"><i>3</i><span>股票大亨<small>錢包 × 100 帶入</small></span></button><b class="arr">›</b>
+      <button data-p="final"><i>4</i><span>結算<small>鎖定・頒獎</small></span></button>
+    </div>
+    <span class="now">點上面的階段也能切換（會再確認一次）</span>
+    <button class="btn pri" id="bNext">切到下一階段</button>
   </div>
-  <div class="tabs" id="tabs">
-    <button data-t="tDash" class="on">總覽</button>
-    <button data-t="tWel">迎賓</button>
-    <button data-t="tHorse">馬匹・騎師</button>
-    <button data-t="tTeam">團體賽</button>
-    <button data-t="tStock">股票大亨</button>
-    <button data-t="tPl">玩家</button>
-    <button data-t="tQr">連結・QR</button>
-    <button data-t="tEnd">結算・資料</button>
-  </div>
+  <div class="shell">
+  <nav class="snav noprint" id="snav"></nav>
+  <main class="main" id="main">
 
   <!-- 總覽 -->
   <div id="tDash" class="tab">
     <div class="lay">
-      <div class="box c12"><div class="stat"><div>目前階段<b id="sPhase" style="font-family:inherit;font-size:18px">—</b></div><div>開通人數<b id="sCount">0</b></div><div>已綁桌<b id="sBound">0</b></div><div>全場流通<b id="sSum">0</b></div><div>進行中 PK<b id="sPk">0</b></div></div></div>
+      <div class="box c12"><div class="stat"><div>開通人數<b id="sCount">0</b></div><div>已綁桌<b id="sBound">0</b></div><div>全場流通<b id="sSum">0</b></div><div>進行中 PK<b id="sPk">0</b></div><div>賽馬<b id="sRace" style="font-family:inherit;font-size:18px">—</b></div></div></div>
+      <div class="box c7"><h2>需要處理</h2><div class="todo" id="ovTodo"></div>
+        <div class="hint">賽馬、PK 裁判、股價、排行都靠這一頁執行，活動中不要關掉，也只開一個。</div></div>
+      <div class="box c5"><h2 id="ovBigH">這個階段要按的</h2><div class="bigs" id="ovBig"></div></div>
     </div>
     <div class="lay full">
       <div class="box c7"><h2>今晚的大亨（前 30）</h2><div class="tscroll fill"><table><thead><tr><th>#</th><th>姓名</th><th>桌</th><th>編號</th><th style="text-align:right">餘額</th></tr></thead><tbody id="dTop"></tbody></table></div></div>
@@ -199,13 +248,6 @@ td.n{text-align:right;font-family:var(--num)}
       <div class="box c4"><h2><span><span class="live"></span>進行中的 PK</span><span class="muted" id="pkN"></span></h2><div class="tscroll fill"><table><thead><tr><th>遊戲</th><th>方式</th><th>押注</th><th>玩家</th><th>狀態</th></tr></thead><tbody id="pkT"></tbody></table></div>
         <div class="hint">後台是 PK 的裁判：人到齊後扣押注、開局、收成績、派彩。這一頁關掉的話，進行中的 PK 會等到重新打開才結算。</div></div>
     </div>
-    <details class="setz" data-z="迎賓數值設定"><summary>⚙ 迎賓數值設定<small>活動當天通常不用動；改完記得按各區的儲存</small></summary>
-      <div class="lay">
-        <div class="box c4"><h2>錢包</h2><div class="cfg" data-cfg="wel"></div><button class="btn sm pri" data-save="wel">儲存這一區</button></div>
-        <div class="box c4"><h2>賽馬</h2><div class="cfg" data-cfg="horse"></div><button class="btn sm pri" data-save="horse">儲存這一區</button></div>
-        <div class="box c4"><h2>PK</h2><div class="cfg" data-cfg="pk"></div><button class="btn sm pri" data-save="pk">儲存這一區</button></div>
-      </div>
-    </details>
   </div>
 
   <!-- 馬匹・騎師 -->
@@ -248,11 +290,6 @@ td.n{text-align:right;font-family:var(--num)}
         <button class="btn ghost sm" id="bTeamReset">重新開始團體賽（清掉抽牌與轉盤紀錄）</button>
       </div>
     </div>
-    <details class="setz" data-z="團體賽數值設定"><summary>⚙ 團體賽數值設定<small>活動當天通常不用動；改完記得按各區的儲存</small></summary>
-      <div class="lay">
-        <div class="box c4"><h2>團體賽</h2><div class="cfg" data-cfg="team"></div><button class="btn sm pri" data-save="team">儲存這一區</button></div>
-      </div>
-    </details>
   </div>
 
   <!-- 股票 -->
@@ -273,13 +310,6 @@ td.n{text-align:right;font-family:var(--num)}
       <div class="box c4"><h2>即時行情</h2><div class="tscroll fill"><table><thead><tr><th>股票</th><th style="text-align:right">現價</th><th style="text-align:right">本回合</th><th>狀態</th></tr></thead><tbody id="skT"></tbody></table></div></div>
       <div class="box c4"><h2>資產排行（前 30）</h2><div class="tscroll fill"><table><thead><tr><th>#</th><th>姓名</th><th style="text-align:right">總資產</th><th style="text-align:right">報酬</th></tr></thead><tbody id="skTop"></tbody></table></div></div>
     </div>
-    <details class="setz" data-z="股票大亨數值設定"><summary>⚙ 股票大亨數值設定<small>活動當天通常不用動；改完記得按各區的儲存</small></summary>
-      <div class="lay">
-        <div class="box c4"><h2>本金與回合</h2><div class="cfg" data-cfg="stockA"></div><button class="btn sm pri" data-save="stockA">儲存這一區</button></div>
-        <div class="box c4"><h2>股價</h2><div class="cfg" data-cfg="stockB"></div><button class="btn sm pri" data-save="stockB">儲存這一區</button></div>
-        <div class="box c4"><h2>5 支股票（名稱｜性格）</h2><div class="cfg" data-cfg="stockC"></div><button class="btn sm pri" data-save="stockC">儲存這一區</button></div>
-      </div>
-    </details>
   </div>
 
   <!-- 玩家 -->
@@ -305,14 +335,29 @@ td.n{text-align:right;font-family:var(--num)}
       <div class="box c4"><h2>鎖定</h2><div class="btns"><button class="btn" id="bLock">立即鎖定</button><button class="btn ghost" id="bUnlock">解除鎖定</button></div><div class="hint">鎖定後所有手機都不能再下注、交易；股票最後一回合收盤會自動鎖定。</div></div>
       <div class="box c4"><h2>清空測試資料</h2><input class="input" id="wTxt" placeholder="輸入「清空」"><button class="btn pri" id="bWipe">刪除所有玩家與紀錄</button><div class="hint">設定值會保留。</div></div>
     </div>
-    <details class="setz" data-z="結算數值設定"><summary>⚙ 結算數值設定<small>活動當天通常不用動；改完記得按各區的儲存</small></summary>
-      <div class="lay">
-        <div class="box c4"><h2>頒獎</h2><div class="cfg" data-cfg="end"></div><button class="btn sm pri" data-save="end">儲存這一區</button></div>
-        <div class="box c4"><h2>恢復預設</h2><div class="hint" style="margin:0 0 8px">所有分頁的數值設定（含馬名、騎師名）一次恢復成預設值。</div><button class="btn sm ghost" id="cfgReset">全部恢復預設值</button></div>
-      </div>
-    </details>
   </div>
 
+</main>
+  </div>
+</div>
+<div id="drawers">
+<div class="drawer" data-dw="tWel"><div class="dw-hd"><b>⚙ 迎賓設定</b><button data-dwx title="關閉（Esc）">✕</button></div><div class="dw-sub">錢包、尋寶開關、賽馬、PK・活動當天通常不用動；改完記得按各區的「儲存」</div><div class="dw-body">
+        <div class="box"><h2>錢包</h2><div class="cfg" data-cfg="wel"></div><button class="btn sm pri" data-save="wel">儲存這一區</button></div>
+        <div class="box"><h2>賽馬</h2><div class="cfg" data-cfg="horse"></div><button class="btn sm pri" data-save="horse">儲存這一區</button></div>
+        <div class="box"><h2>PK</h2><div class="cfg" data-cfg="pk"></div><button class="btn sm pri" data-save="pk">儲存這一區</button></div>
+</div></div>
+<div class="drawer" data-dw="tTeam"><div class="dw-hd"><b>⚙ 團體賽設定</b><button data-dwx title="關閉（Esc）">✕</button></div><div class="dw-sub">桌數、座位、抽牌秒數・活動當天通常不用動；改完記得按各區的「儲存」</div><div class="dw-body">
+        <div class="box"><h2>團體賽</h2><div class="cfg" data-cfg="team"></div><button class="btn sm pri" data-save="team">儲存這一區</button></div>
+</div></div>
+<div class="drawer" data-dw="tStock"><div class="dw-hd"><b>⚙ 股票大亨設定</b><button data-dwx title="關閉（Esc）">✕</button></div><div class="dw-sub">本金、回合、股價、5 支股票・活動當天通常不用動；改完記得按各區的「儲存」</div><div class="dw-body">
+        <div class="box"><h2>本金與回合</h2><div class="cfg" data-cfg="stockA"></div><button class="btn sm pri" data-save="stockA">儲存這一區</button></div>
+        <div class="box"><h2>股價</h2><div class="cfg" data-cfg="stockB"></div><button class="btn sm pri" data-save="stockB">儲存這一區</button></div>
+        <div class="box"><h2>5 支股票（名稱｜性格）</h2><div class="cfg" data-cfg="stockC"></div><button class="btn sm pri" data-save="stockC">儲存這一區</button></div>
+</div></div>
+<div class="drawer" data-dw="tEnd"><div class="dw-hd"><b>⚙ 結算設定</b><button data-dwx title="關閉（Esc）">✕</button></div><div class="dw-sub">頒獎人數、全部恢復預設・活動當天通常不用動；改完記得按各區的「儲存」</div><div class="dw-body">
+        <div class="box"><h2>頒獎</h2><div class="cfg" data-cfg="end"></div><button class="btn sm pri" data-save="end">儲存這一區</button></div>
+        <div class="box"><h2>恢復預設</h2><div class="hint" style="margin:0 0 8px">所有分頁的數值設定（含馬名、騎師名）一次恢復成預設值。</div><button class="btn sm ghost" id="cfgReset">全部恢復預設值</button></div>
+</div></div>
 </div>
 <script>
 /* ================================================================
@@ -1229,19 +1274,82 @@ let PLAYERS = {}, lastBoard = "", boardT = 0, RLOG = {}, settling = false, FEED 
 let PKLIVE = {}, PKDOC = {}, pkUnsubs = {};
 let PL = {}, MKT = null, mktDirty = false, mktWriteT = 0, histT = 0, HIST = null, STK = {};
 let teamBusy = false, selT = null;
-const tabs = $$("#tabs button");
-tabs.forEach(b => b.onclick = () => { tabs.forEach(x => x.classList.toggle("on", x === b)); $$(".tab").forEach(t => t.classList.toggle("hide", t.id !== b.dataset.t)); if(b.dataset.t === "tQr") renderQr(); fillCfg(); renderAll(); fitFull(); });
+/* ================= v2.0 功能列 ================= */
+/* 加新頁面時：PAGES 加一筆、SIDE 加一筆；有設定抽屜的頁面在 #drawers 放一個 data-dw="頁面 id" */
+const PAGES = {
+  tDash:  { t: "總覽",           s: "現在的狀況、需要處理的事、這個階段要按的" },
+  tWel:   { t: "迎賓：賽馬・PK", s: "迎賓階段的現場操作；賽馬自動連續開局，PK 由這一頁當裁判" },
+  tHorse: { t: "迎賓：馬匹・騎師", s: "改馬名、騎師名（從下一場開盤生效）" },
+  tTeam:  { t: "團體賽",         s: "照 ①→④ 的順序操作：綁桌、抽牌、轉盤、公布桌榜" },
+  tStock: { t: "股票大亨",       s: "開盤、提前收盤、主持人大事件" },
+  tEnd:   { t: "結算・資料",     s: "匯出結算、鎖定錢包、清空測試資料" },
+  tPl:    { t: "玩家",           s: "查詢、加扣幣、改桌號" },
+  tQr:    { t: "連結・QR",       s: "玩家入口、電視牆、桌卡、尋寶線索（可直接列印）" }
+};
+const SIDE = [
+  { id: "tDash", ic: "🏠" }, "sep",
+  { id: "g_wel", l: "迎賓", ph: "welcome", kids: [{ id: "tWel", l: "賽馬・PK" }, { id: "tHorse", l: "馬匹・騎師" }] },
+  { id: "tTeam", l: "團體賽", ph: "team" }, { id: "tStock", l: "股票大亨", ph: "stock" }, { id: "tEnd", l: "結算・資料", ph: "final" }, "sep",
+  { id: "tPl", l: "玩家" }, { id: "tQr", l: "連結・QR" }
+];
 /* 「full」列的高度＝視窗剩下的高度，操作區一個畫面看完 */
 function fitFull(){ $$(".tab:not(.hide) .lay.full").forEach(el => el.style.setProperty("--top", Math.round(el.getBoundingClientRect().top + window.scrollY + 16) + "px")); }
 window.addEventListener("resize", fitFull);
-/* 數值設定區記住開合（只存在這台電腦） */
-$$(".setz").forEach(d => { try { if(localStorage.getItem("mono_setz_" + d.dataset.z) === "1") d.open = true; } catch(e){} d.addEventListener("toggle", () => { try { localStorage.setItem("mono_setz_" + d.dataset.z, d.open ? "1" : "0"); } catch(e){} }); });
+let CURT = "tDash", SNOPEN = null;
+function sideBadge(id){
+  if(id === "tDash"){ const n = (OV.todo || []).filter(x => x.lv === "w" || x.lv === "bad").length; return n ? '<span class="sn-bd">' + n + '</span>' : ""; }
+  if(id === "tPl" && GC.phase() === "team"){ const u = ranked().filter(p => !p.table).length; return u ? '<span class="sn-bd w">' + u + ' 未綁</span>' : ""; }
+  return "";
+}
+function sideNav(){
+  const ph = GC.phase(), grpOf = id => SIDE.find(x => x.kids && x.kids.some(k => k.id === id));
+  const curG = grpOf(CURT), open = SNOPEN === null ? (curG ? curG.id : null) : SNOPEN;
+  let h = "";
+  SIDE.forEach(x => {
+    if(x === "sep"){ h += '<div class="sn-sep"></div>'; return; }
+    const live = x.ph && x.ph === ph ? '<span class="live" title="目前階段"></span>' : "";
+    if(x.kids){
+      const isOpen = open === x.id, has = curG === x;
+      h += '<button class="sn-it' + (isOpen ? " open" : "") + (has && !isOpen ? " hascur" : "") + '" data-g="' + x.id + '">' + live + '<span class="l">' + x.l + '</span><span class="chev">▶</span></button>';
+      if(isOpen) x.kids.forEach(k => h += '<button class="sn-it sub' + (k.id === CURT ? " on" : "") + '" data-go="' + k.id + '"><span class="l">' + k.l + '</span>' + sideBadge(k.id) + '</button>');
+      return;
+    }
+    h += '<button class="sn-it' + (x.id === CURT ? " on" : "") + '" data-go="' + x.id + '">' + live + '<span class="l">' + (x.ic ? x.ic + " " : "") + (x.l || PAGES[x.id].t) + '</span>' + sideBadge(x.id) + '</button>';
+  });
+  h += '<div class="sn-tip"><span class="live"></span>＝目前進行中的階段</div>';
+  if($("snav").innerHTML !== h){
+    $("snav").innerHTML = h;
+    $$("#snav [data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
+    $$("#snav [data-g]").forEach(b => b.onclick = () => { const cur = SNOPEN === null ? (grpOf(CURT) || {}).id : SNOPEN; SNOPEN = cur === b.dataset.g ? "" : b.dataset.g; sideNav(); });
+  }
+}
+/* 每頁上方加標題列；有設定抽屜的頁面多一顆「⚙ 這頁的設定」 */
+Object.keys(PAGES).forEach(id => {
+  const el = $(id); if(!el) return;
+  const hasDw = !!document.querySelector('.drawer[data-dw="' + id + '"]');
+  el.insertAdjacentHTML("afterbegin", '<div class="ph noprint"><div><h1>' + PAGES[id].t + '</h1><div class="sub">' + PAGES[id].s + '</div></div>' + (hasDw ? '<button class="btn dwb" data-open-dw="' + id + '">⚙ 這頁的設定</button>' : "") + '</div>');
+});
+$$("[data-open-dw]").forEach(b => b.onclick = () => openDw(b.dataset.openDw));
+function openDw(id){ $$(".drawer").forEach(d => d.classList.toggle("open", d.dataset.dw === id && !d.classList.contains("open"))); fillCfg(); }
+function closeDw(){ $$(".drawer").forEach(d => d.classList.remove("open")); }
+$$("[data-dwx]").forEach(b => b.onclick = closeDw);
+document.addEventListener("keydown", e => { if(e.key === "Escape") closeDw(); });
+function go(id){
+  if(!PAGES[id]) id = "tDash";
+  CURT = id; SNOPEN = null; try { sessionStorage.setItem("mono_admin_tab", id); } catch(e){}
+  $$(".tab").forEach(t => t.classList.toggle("hide", t.id !== id));
+  $$(".drawer.open").forEach(d => { if(d.dataset.dw !== id) d.classList.remove("open"); });
+  if(id === "tQr") renderQr();
+  fillCfg(); renderAll(); fitFull(); window.scrollTo(0, 0);
+}
 $("gGo").onclick = () => { if($("gPass").value === GC_PASS.admin){ try { sessionStorage.setItem("mono_admin", "1"); } catch(e){} start(); } else $("gErr").textContent = "密碼錯誤"; };
 $("gPass").addEventListener("keydown", e => { if(e.key === "Enter") $("gGo").click(); });
 const feed = t => DB.push("feed", { t, ts: DB.now() });
 
 /* ================= 階段 ================= */
 $$("#phases button").forEach(b => b.onclick = () => setPhase(b.dataset.p));
+const PH_ORDER = ["welcome", "team", "stock", "final"];
+$("bNext").onclick = () => { const i = PH_ORDER.indexOf(GC.phase()); if(i >= 0 && i < 3) setPhase(PH_ORDER[i + 1]); };
 async function setPhase(p){
   const cur = GC.phase();
   if(p === cur) return;
@@ -1648,15 +1756,64 @@ $("eGood").onclick = () => stockEvent("good");
 function renderAll(){
   const now = DB.now(), ph = GC.phase();
   $("hClock").textContent = new Date(now).toLocaleTimeString("zh-TW", { hour12: false });
-  $$("#phases button").forEach(b => b.classList.toggle("on", b.dataset.p === ph));
+  const pi = PH_ORDER.indexOf(ph);
+  $$("#phases button").forEach(b => { const i = PH_ORDER.indexOf(b.dataset.p); b.classList.toggle("on", i === pi); b.classList.toggle("done", i < pi); });
+  $("bNext").style.display = pi >= 3 ? "none" : ""; if(pi < 3) $("bNext").textContent = "切到下一階段：" + PHASE_NAME[PH_ORDER[pi + 1]] + " →";
   const arr = ranked();
   $("sCount").textContent = money(arr.length); $("sSum").textContent = money(arr.reduce((a, p) => a + p.bal, 0));
   $("sBound").textContent = money(arr.filter(p => p.table).length); $("sPk").textContent = Object.keys(PKLIVE).length;
-  $("sPhase").textContent = PHASE_NAME[ph] + (GC.state.locked ? "（已鎖定）" : "");
+  $("sBound").textContent = money(arr.filter(p => p.table).length) + " / " + money(arr.length);
+  const rr = GC.state.race; $("sRace").textContent = !rr ? "尚未開始" : "第 " + rr.no + " 場・" + (rr.cancelled ? "已取消" : RPH[rr.phase] || rr.phase);
+  renderOverview(arr); sideNav();
   $("dTop").innerHTML = arr.slice(0, 30).map((p, i) => '<tr><td>' + (i+1) + '</td><td>' + esc(p.name) + '</td><td>' + (p.table || "—") + '</td><td>' + p.code + '</td><td class="n">' + money(p.bal) + '</td></tr>').join("") || '<tr><td colspan="5" class="muted">尚無玩家</td></tr>';
   $("dFeed").innerHTML = FEED.slice().reverse().slice(0, 60).map(x => '<div>' + esc(x.t) + '</div>').join("") || '<span class="muted">—</span>';
   renderRace(); renderPkList(); renderTeam(); renderStock();
   if(!$("tPl").classList.contains("hide")) renderPlayers();
+}
+/* ================= v2.0 總覽現況頁 ================= */
+const OV = { todo: [], bigH: "", big: "", todoH: "" };
+function renderOverview(arr){
+  const ph = GC.phase(), c = GC.cfg, T = [], r = GC.state.race, tm = GC.state.team || { step: "idle" }, st = stockState(), now = DB.now();
+  const add = (lv, ic, t, sub, btn, act) => T.push({ lv, ic, t, sub, btn, act });
+  if(DB.mode !== "firebase") add("", "🧪", "本機測試模式", "資料只存在這台電腦的瀏覽器，手機連不到；正式活動要用 Firebase 連線");
+  if($("hConn").classList.contains("bad")) add("bad", "📡", "連線中斷", "畫面上的數字可能不是最新的，請檢查網路");
+  if(GC.state.locked && ph !== "final") add("w", "🔒", "錢包目前是鎖定的", "所有手機都不能下注、交易", "解除鎖定", "unlock");
+  if(ph === "welcome"){
+    if(!c.horse.auto) add("w", "🏇", "賽馬自動開局暫停中", "賓客現在不能下注", "開始自動開局", "autoOn");
+    else add("ok", "🏇", "賽馬自動開局中", r ? "第 " + r.no + " 場・" + (RPH[r.phase] || r.phase) : "幾秒內會開第一場");
+    if(c.hunt.on) add("", "🔍", "這場有尋寶（" + c.hunt.clues.length + " 個線索）", "線索卡要先印好藏在現場", "去列印", "goQr");
+    add("", "🃏", "下一步：迎賓結束後切到團體賽", "全場手機會跳出「掃桌上 QR 確認桌號」；桌卡 QR 共 " + (+c.team.tables || 0) + " 桌", "看桌卡 QR", "goQr");
+  }
+  if(ph === "team"){
+    const un = arr.filter(p => !p.table).length, drawn = Object.keys(teamDraws).length, tabs = boundTables().length;
+    if(un) add("w", "🪑", "還有 " + un + " 人沒綁桌", "沒綁的人不算進任何一桌，轉盤結果也不會套用", "看玩家", "goPl");
+    const stepTxt = { idle: ["", "▶", "下一步：② 開放抽牌", "已綁桌 " + tabs + " 桌"], drawing: ["", "🃏", "抽牌中：已抽 " + drawn + " / " + tabs + " 桌", "時間到不會自動揭曉，要按「揭曉」"], revealing: ["", "📺", "電視牆揭曉中…", ""], revealed: ["", "🎡", "轉盤階段", "上台的桌轉完實體轉盤後，在③套用結果"], board: ["ok", "🏆", "桌榜已公布", "下一步：切到股票大亨"] }[tm.step || "idle"];
+    add(stepTxt[0], stepTxt[1], stepTxt[2], stepTxt[3], "去團體賽", "goTeam");
+  }
+  if(ph === "stock"){
+    if(st.open) add("ok", "📈", "第 " + st.round + " 回合開盤中", "剩 " + Math.max(0, Math.ceil((st.endAt - now) / 1000)) + " 秒");
+    else if(st.round < SC().rounds) add("", "▶", "第 " + (st.round + 1) + " 回合等待開盤", "共 " + SC().rounds + " 回合，最後一回合收盤會自動結算", "▶ 開盤", "round");
+  }
+  if(ph === "final") add("ok", "🏁", "已結算" + (GC.state.locked ? "・錢包已鎖定" : ""), "可以下載結算 CSV，電視牆可播頒獎", "下載 CSV", "csv");
+  if(!T.some(x => x.lv === "w" || x.lv === "bad")) T.unshift({ lv: "ok", ic: "✅", t: "目前沒有需要處理的事", sub: "" });
+  OV.todo = T;
+  const th = T.map((x, i) => '<div class="td ' + x.lv + '"><span class="ic">' + x.ic + '</span><span class="t"><b>' + x.t + '</b>' + (x.sub ? '<small>' + x.sub + '</small>' : "") + '</span>' + (x.btn ? '<button class="btn sm" data-ov="' + x.act + '">' + x.btn + '</button>' : "") + '</div>').join("");
+  if(th !== OV.todoH){ OV.todoH = th; $("ovTodo").innerHTML = th; $$("#ovTodo [data-ov]").forEach(b => b.onclick = () => ovAct(b.dataset.ov)); }
+  const TV = { g: "tv", l: "📺 打開電視牆", s: "開新視窗，雙擊全螢幕" };
+  const B = { welcome: [{ g: "tWel", l: "🏇 賽馬・PK", s: "開局、暫停、取消退款、看 PK", pri: 1 }, TV, { g: "tQr", l: "🔳 連結・QR", s: "玩家入口、桌卡、尋寶線索" }, { g: "tPl", l: "👥 玩家", s: "查人、加扣幣" }],
+    team: [{ g: "tTeam", l: "🃏 團體賽操作台", s: "抽牌、揭曉、轉盤、桌榜", pri: 1 }, TV, { g: "tPl", l: "👥 玩家・改桌號", s: "掃錯桌的人在這裡改" }],
+    stock: [{ g: "tStock", l: "📈 股票操作台", s: "開盤、大事件、提前收盤", pri: 1 }, TV],
+    final: [{ g: "tEnd", l: "🏁 結算・匯出", s: "下載 CSV、鎖定", pri: 1 }, TV] }[ph] || [];
+  const bh = B.map(x => '<button class="big' + (x.pri ? " pri" : "") + '" data-big="' + x.g + '">' + x.l + '<small>' + x.s + '</small></button>').join("");
+  $("ovBigH").textContent = PHASE_NAME[ph] + "階段要按的";
+  if(bh !== OV.big){ OV.big = bh; $("ovBig").innerHTML = bh; $$("#ovBig [data-big]").forEach(b => b.onclick = () => b.dataset.big === "tv" ? window.open(pageUrl(GC_FILES.tv), "mono_tv") : go(b.dataset.big)); }
+}
+async function ovAct(a){
+  if(a === "unlock") return $("bUnlock").click();
+  if(a === "autoOn") return $("bAutoOn").click();
+  if(a === "round") return $("bRound").click();
+  if(a === "csv") return $("bCsv").click();
+  go({ goQr: "tQr", goPl: "tPl", goTeam: "tTeam" }[a]);
 }
 const RPH = { open: "開盤中・可下注", running: "比賽進行中", settling: "派彩中…", done: "已開獎" };
 function renderRace(){
@@ -1853,6 +2010,8 @@ async function start(){
   setInterval(marketTick, 200);
   setInterval(computeBoard, 3500);
   setInterval(renderAll, 1000);
+  let last = "tDash"; try { last = sessionStorage.getItem("mono_admin_tab") || "tDash"; } catch(e){}
+  go(last);
 }
 (() => { let ok = false; try { ok = sessionStorage.getItem("mono_admin") === "1"; } catch(e){} if(ok) start(); })();
 </script>
