@@ -143,7 +143,7 @@ body{background:var(--board)}
 .tscroll{max-height:260px;overflow:auto;border:2px solid var(--board2);border-radius:8px}
 /* ---- 版面：12 欄格線；同一列等高；「full」列撐滿螢幕剩餘高度，表格在框內捲動 ---- */
 .lay{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px;margin-top:12px;align-items:stretch}
-.lay>.c3{grid-column:span 3}.lay>.c4{grid-column:span 4}.lay>.c5{grid-column:span 5}.lay>.c6{grid-column:span 6}.lay>.c7{grid-column:span 7}.lay>.c12{grid-column:span 12}
+.lay>.c3{grid-column:span 3}.lay>.c4{grid-column:span 4}.lay>.c5{grid-column:span 5}.lay>.c6{grid-column:span 6}.lay>.c7{grid-column:span 7}.lay>.c8{grid-column:span 8}.lay>.c12{grid-column:span 12}
 .lay .box{display:flex;flex-direction:column}
 .lay .box>.btn,.lay .box>.btns{flex:none}
 .lay.full{height:max(420px, calc(100vh - var(--top, 250px)))}
@@ -312,10 +312,36 @@ td.n{text-align:right;font-family:var(--num)}
     </div>
   </div>
 
+  <!-- 名單匯入 -->
+  <div id="tRoster" class="tab hide">
+    <div class="lay">
+      <div class="box c4"><h2>① 選擇檔案</h2>
+        <div class="info">Excel（.xlsx／.xls）或 CSV。第一列放標題：<b>員編、姓名、部門</b>（部門可以空白）。</div>
+        <button class="btn sm" id="roTpl">⬇ 下載範本</button>
+        <input type="file" id="roFile" accept=".xlsx,.xls,.csv" style="margin-top:12px;max-width:100%">
+        <div class="cfg" style="margin-top:12px;grid-template-columns:auto 1fr"><span>匯入方式</span><select id="roMode"><option value="add">新增／更新（保留原本的）</option><option value="all">整份覆蓋（新檔案沒有的人會刪掉）</option></select></div>
+        <div class="hint">已經開通的人，匯入後開通狀態都會保留；整份覆蓋也不會刪掉已開通的人。</div>
+      </div>
+      <div class="box c8"><h2>② 預覽與確認 <span class="muted" id="roSum"></span></h2>
+        <div class="tscroll" style="max-height:300px"><table><thead><tr><th>列</th><th>員編</th><th>姓名</th><th>部門</th><th>檢查</th></tr></thead><tbody id="roPrev"><tr><td colspan="5" class="muted">先在左邊選擇檔案</td></tr></tbody></table></div>
+        <button class="btn pri" id="roGo" disabled>確認匯入</button>
+      </div>
+    </div>
+    <div class="lay">
+      <div class="box c8"><h2>目前名單 <span class="muted" id="roN"></span></h2>
+        <input class="input" id="roQ" placeholder="搜尋員編、姓名或部門" style="max-width:280px">
+        <div class="tscroll" style="max-height:420px;margin-top:8px"><table><thead><tr><th>員編</th><th>姓名</th><th>部門</th><th>開通</th><th></th></tr></thead><tbody id="roT"></tbody></table></div></div>
+      <div class="box c4"><h2>手動新增一筆</h2><div class="hint" style="margin:0 0 8px">現場臨時來賓用；員編重複的話會更新姓名和部門。</div>
+        <div class="cfg" style="grid-template-columns:auto 1fr"><span>員編</span><input id="roAddE"><span>姓名</span><input id="roAddN"><span>部門</span><input id="roAddD"></div>
+        <button class="btn sm pri" id="roAdd" style="margin-top:10px">新增</button>
+        <h2 style="margin-top:18px">清空名單</h2><input class="input" id="roClrTxt" placeholder="輸入「清空」"><button class="btn sm ghost" id="roClr">刪除整份名單</button><div class="hint">已開通的錢包不會被刪，但之後就不能用員編找回。</div></div>
+    </div>
+  </div>
+
   <!-- 玩家 -->
   <div id="tPl" class="tab hide">
     <div class="lay full"><div class="box c12"><div class="row"><input class="input" id="plQ" placeholder="搜尋姓名或編號" style="max-width:280px"><span class="muted" id="plN"></span></div>
-      <div class="tscroll fill" style="margin-top:8px"><table><thead><tr><th>#</th><th>姓名</th><th>編號</th><th>桌</th><th style="text-align:right">餘額</th><th id="thHunt">尋寶</th><th>救濟</th><th>加扣幣</th><th>改桌號</th></tr></thead><tbody id="plT"></tbody></table></div></div></div>
+      <div class="tscroll fill" style="margin-top:8px"><table><thead><tr><th>#</th><th>姓名</th><th id="thEid">員編</th><th>編號</th><th>桌</th><th style="text-align:right">餘額</th><th id="thHunt">尋寶</th><th>救濟</th><th>加扣幣</th><th>改桌號</th></tr></thead><tbody id="plT"></tbody></table></div></div></div>
   </div>
 
   <!-- QR -->
@@ -388,6 +414,7 @@ const FB_DB_URL  = "https://www.gstatic.com/firebasejs/10.12.2/firebase-database
 /* ---------- 預設數值（後台「數值設定」可改，改完存進資料庫覆蓋這裡） ---------- */
 const GC_DEFAULTS = {
   bonus: 1000,                                  /* 開通禮金 */
+  join: { mode: "eid" },                        /* 開通方式：eid＝員編＋姓名（比對後台匯入的名單）；name＝只填姓名 */
   relief: { amount: 200, below: 50 },           /* 救濟金：餘額低於 below 可領一次 */
   hunt: {
     on: false,                                  /* 這場有沒有尋寶（後台勾選；預設不勾） */
@@ -715,6 +742,10 @@ const GC = {
     const p = await DB.get("players/" + pid);
     return p ? Object.assign({ pid }, p) : null;
   },
+  /* 員編：全形轉半形、去空白、轉大寫；Firebase 路徑不能有的字元換成 _ */
+  normEid(s){ return String(s || "").normalize("NFKC").trim().toUpperCase().replace(/\s+/g, "").replace(/[.#$\[\]\/]/g, "_").slice(0, 30); },
+  /* 姓名比對：全形轉半形、去掉所有空白和間隔號，英文不分大小寫（「王 小明」＝「王小明」） */
+  normName(s){ return String(s || "").normalize("NFKC").replace(/[\s\u3000·・.]/g, "").toLowerCase(); },
   parseCode(text){
     const s = String(text || "");
     const m = s.match(/[?&]pk=(\d{4})/) || s.match(/^\s*(\d{4})\s*$/) || s.match(/GC[:\-]?(\d{4})/i);
@@ -1283,6 +1314,7 @@ const PAGES = {
   tTeam:  { t: "團體賽",         s: "照 ①→④ 的順序操作：綁桌、抽牌、轉盤、公布桌榜" },
   tStock: { t: "股票大亨",       s: "開盤、提前收盤、主持人大事件" },
   tEnd:   { t: "結算・資料",     s: "匯出結算、鎖定錢包、清空測試資料" },
+  tRoster:{ t: "名單匯入",       s: "匯入員工名單（員編、姓名、部門）；開通方式是「員編＋姓名」時，要對得上這份名單才能開通" },
   tPl:    { t: "玩家",           s: "查詢、加扣幣、改桌號" },
   tQr:    { t: "連結・QR",       s: "玩家入口、電視牆、桌卡、尋寶線索（可直接列印）" }
 };
@@ -1290,7 +1322,7 @@ const SIDE = [
   { id: "tDash", ic: "🏠" }, "sep",
   { id: "g_wel", l: "迎賓", ph: "welcome", kids: [{ id: "tWel", l: "賽馬・PK" }, { id: "tHorse", l: "馬匹・騎師" }] },
   { id: "tTeam", l: "團體賽", ph: "team" }, { id: "tStock", l: "股票大亨", ph: "stock" }, { id: "tEnd", l: "結算・資料", ph: "final" }, "sep",
-  { id: "tPl", l: "玩家" }, { id: "tQr", l: "連結・QR" }
+  { id: "tRoster", l: "名單匯入" }, { id: "tPl", l: "玩家" }, { id: "tQr", l: "連結・QR" }
 ];
 /* 「full」列的高度＝視窗剩下的高度，操作區一個畫面看完 */
 function fitFull(){ $$(".tab:not(.hide) .lay.full").forEach(el => el.style.setProperty("--top", Math.round(el.getBoundingClientRect().top + window.scrollY + 16) + "px")); }
@@ -1298,6 +1330,7 @@ window.addEventListener("resize", fitFull);
 let CURT = "tDash", SNOPEN = null;
 function sideBadge(id){
   if(id === "tDash"){ const n = (OV.todo || []).filter(x => x.lv === "w" || x.lv === "bad").length; return n ? '<span class="sn-bd">' + n + '</span>' : ""; }
+  if(id === "tRoster" && roMode() && !ROSTER_N) return '<span class="sn-bd">未匯入</span>';
   if(id === "tPl" && GC.phase() === "team"){ const u = ranked().filter(p => !p.table).length; return u ? '<span class="sn-bd w">' + u + ' 未綁</span>' : ""; }
   return "";
 }
@@ -1340,6 +1373,7 @@ function go(id){
   $$(".tab").forEach(t => t.classList.toggle("hide", t.id !== id));
   $$(".drawer.open").forEach(d => { if(d.dataset.dw !== id) d.classList.remove("open"); });
   if(id === "tQr") renderQr();
+  if(id === "tRoster") roLoad();
   fillCfg(); renderAll(); fitFull(); window.scrollTo(0, 0);
 }
 $("gGo").onclick = () => { if($("gPass").value === GC_PASS.admin){ try { sessionStorage.setItem("mono_admin", "1"); } catch(e){} start(); } else $("gErr").textContent = "密碼錯誤"; };
@@ -1474,6 +1508,8 @@ function watchPk(){
   });
 }
 const pkBusy = {};
+/* 隨機房：至少 2 人、而且房裡每個人都按了「準備好了」→ 不等倒數，直接開局 */
+const pkAllReady = m => { const ids = Object.keys(m.m || {}), r = m.rdy || {}; return ids.length >= 2 && ids.every(p => r[p]); };
 async function pkEngine(){
   const now = DB.now();
   for(const id of Object.keys(PKLIVE)){
@@ -1481,7 +1517,7 @@ async function pkEngine(){
     if(!m || pkBusy[id]) continue;
     pkBusy[id] = true;
     try {
-      if(m.st === "open" && (now >= m.closeAt || Object.keys(m.m || {}).length >= PKX.maxOf(m.g))) await pkLock(id, m);
+      if(m.st === "open" && (now >= m.closeAt || Object.keys(m.m || {}).length >= PKX.maxOf(m.g) || pkAllReady(m))) await pkLock(id, m);
       else if(m.st === "accepted") await pkStart(id, m);
       else if(m.st === "play") await pkPlay(id, m, now);
       else if(["done","failed","alone","cancelled","declined","expired"].includes(m.st)) await DB.remove("pkLive/" + id);
@@ -1497,7 +1533,8 @@ async function pkLock(id, m){
   await DB.tx("roomIdx/" + m.g + "_" + m.stake, cur => cur === null ? null : (cur.id === id ? null : undefined));
   const mm = (await DB.get("pk/" + id + "/m")) || {};
   if(Object.keys(mm).length < 2){ await DB.update("pk/" + id, { st: "alone", doneAt: DB.now() }); return; }
-  await pkStart(id, Object.assign({}, m, { m: mm, st: "locking" }), true);
+  /* 房裡每個人都按了「準備好了」→ 數鈔／蓋樓開局後 1 秒全員自動開始 */
+  await pkStart(id, Object.assign({}, m, { m: mm, st: "locking", allReady: pkAllReady(Object.assign({}, m, { m: mm })) }), true);
 }
 /* 開局：扣每個人的押注 → 決定開始時間（各遊戲的初始資料） */
 async function pkStart(id, m, owned){
@@ -1516,7 +1553,10 @@ async function pkStart(id, m, owned){
   const startAt = DB.now() + 400, c = GC.cfg.pk, u = { st: "play", startAt, m: ok, out, n: pids.length };
   if(m.g === "dice"){ u.dice = PKX.rollAll(pids); u.endAt = startAt + PK_DICE_WIN; }
   if(m.g === "rps"){ u.rps = { r: 1, rs: startAt, w: {}, log: [] }; }
-  if(m.g === "cash" || m.g === "build"){ u.endAt = startAt + PK_START_WIN + c.playSec * 1000 + 1500; }
+  if(m.g === "cash" || m.g === "build"){
+    if(m.allReady){ u.autoAt = startAt + 1000; u.endAt = u.autoAt + c.playSec * 1000 + 1500; }
+    else u.endAt = startAt + PK_START_WIN + c.playSec * 1000 + 1500;
+  }
   await DB.update("pk/" + id, u);
 }
 async function pkPlay(id, m, now){
@@ -1777,6 +1817,10 @@ function renderOverview(arr){
   const add = (lv, ic, t, sub, btn, act) => T.push({ lv, ic, t, sub, btn, act });
   if(DB.mode !== "firebase") add("", "🧪", "本機測試模式", "資料只存在這台電腦的瀏覽器，手機連不到；正式活動要用 Firebase 連線");
   if($("hConn").classList.contains("bad")) add("bad", "📡", "連線中斷", "畫面上的數字可能不是最新的，請檢查網路");
+  if(roMode()){
+    if(!ROSTER_N) add("bad", "🪪", "開通方式是「員編＋姓名」，但還沒匯入名單", "賓客現在都開不了錢包；不用名單的話，到「⚙ 迎賓設定」改成只填姓名", "去匯入", "goRoster");
+    else if(ph === "welcome") add("", "🪪", "員工名單 " + ROSTER_N + " 人", "開通要對得上員編和姓名；臨時來賓到「名單匯入」手動新增", "看名單", "goRoster");
+  }
   if(GC.state.locked && ph !== "final") add("w", "🔒", "錢包目前是鎖定的", "所有手機都不能下注、交易", "解除鎖定", "unlock");
   if(ph === "welcome"){
     if(!c.horse.auto) add("w", "🏇", "賽馬自動開局暫停中", "賓客現在不能下注", "開始自動開局", "autoOn");
@@ -1813,7 +1857,7 @@ async function ovAct(a){
   if(a === "autoOn") return $("bAutoOn").click();
   if(a === "round") return $("bRound").click();
   if(a === "csv") return $("bCsv").click();
-  go({ goQr: "tQr", goPl: "tPl", goTeam: "tTeam" }[a]);
+  go({ goQr: "tQr", goPl: "tPl", goTeam: "tTeam", goRoster: "tRoster" }[a]);
 }
 const RPH = { open: "開盤中・可下注", running: "比賽進行中", settling: "派彩中…", done: "已開獎" };
 function renderRace(){
@@ -1883,15 +1927,101 @@ function renderStock(){
   $("skTop").innerHTML = arr.slice(0, 30).map((x, i) => '<tr><td>' + (i+1) + '</td><td>' + esc(x.n) + '</td><td class="n">' + money(x.a) + '</td><td class="n">' + (x.ret >= 0 ? "+" : "") + x.ret.toFixed(1) + '%</td></tr>').join("") || '<tr><td colspan="4" class="muted">—</td></tr>';
 }
 
+/* ================= v2.1 名單匯入 ================= */
+let ROSTER = null, ROSTER_N = 0, RO_PREV = null;
+const roMode = () => (GC.cfg.join || {}).mode === "eid";
+async function roLoad(){ ROSTER = (await DB.get("roster")) || {}; renderRoster(); }
+function renderRoster(){
+  if(!ROSTER) return;
+  const q = $("roQ").value.trim().toLowerCase(), arr = Object.entries(ROSTER).filter(([, r]) => r && r.n).map(([e, r]) => Object.assign({ e }, r)).sort((x, y) => x.e.localeCompare(y.e));
+  $("roN").textContent = "共 " + arr.length + " 人・已開通 " + arr.filter(r => r.pid).length + " 人";
+  const list = arr.filter(r => !q || (r.e + " " + r.n + " " + (r.d || "")).toLowerCase().includes(q));
+  $("roT").innerHTML = list.slice(0, 300).map(r => '<tr><td>' + esc(r.e) + '</td><td>' + esc(r.n) + '</td><td>' + esc(r.d || "") + '</td><td>' + (r.pid ? "✅ 已開通" : '<span class="muted">未開通</span>') + '</td><td>' + (r.pid ? "" : '<button class="btn inline" data-rodel="' + esc(r.e) + '">刪除</button>') + '</td></tr>').join("")
+    + (list.length > 300 ? '<tr><td colspan="5" class="muted">只顯示前 300 筆，請用搜尋</td></tr>' : "") || '<tr><td colspan="5" class="muted">' + (arr.length ? "找不到" : "還沒有名單") + '</td></tr>';
+  $$("[data-rodel]").forEach(b => b.onclick = async () => { const e = b.dataset.rodel; if(!confirm("從名單刪除 " + e + "？")) return; await DB.remove("roster/" + e); delete ROSTER[e]; await DB.set("rosterN", Object.keys(ROSTER).length); renderRoster(); });
+}
+$("roQ").addEventListener("input", renderRoster);
+/* 讀檔：CSV 自己解析；Excel 用 SheetJS（第一次用到才從網路載入） */
+function parseCsv(t){
+  t = t.replace(/^﻿/, ""); const rows = []; let row = [], cur = "", q = false;
+  for(let i = 0; i < t.length; i++){ const ch = t[i];
+    if(q){ if(ch === '"'){ if(t[i+1] === '"'){ cur += '"'; i++; } else q = false; } else cur += ch; }
+    else if(ch === '"') q = true; else if(ch === ","){ row.push(cur); cur = ""; }
+    else if(ch === "\n" || ch === "\r"){ if(ch === "\r" && t[i+1] === "\n") i++; row.push(cur); rows.push(row); row = []; cur = ""; }
+    else cur += ch; }
+  if(cur !== "" || row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+function loadXlsx(){ return window.XLSX ? Promise.resolve() : new Promise((res, rej) => { const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"; s.onload = res; s.onerror = () => rej(new Error("Excel 讀取元件載入失敗（這台電腦要能連網），也可以把 Excel 另存成 CSV 再匯入")); document.head.appendChild(s); }); }
+async function readRows(f){
+  if(/\.csv$/i.test(f.name)) return parseCsv(await f.text());
+  await loadXlsx(); const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
+  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: "" });
+}
+/* 找標題列（員編／姓名／部門）；找不到標題就當第 1 欄員編、第 2 欄姓名、第 3 欄部門 */
+function roPrepare(rows){
+  rows = rows.filter(r => r && r.some(x => String(x).trim() !== ""));
+  if(!rows.length) return { list: [], bad: 0, dup: 0 };
+  const h = rows[0].map(x => String(x).trim()), fi = re => h.findIndex(x => re.test(x));
+  let ie = fi(/員編|員工編號|工號|員工代號|編號|^id$/i), ini = fi(/姓名|名字|^name$/i), idp = fi(/部門|單位|dept/i), st0 = 1;
+  if(ie < 0 || ini < 0){ ie = 0; ini = 1; idp = 2; st0 = 0; }
+  const seen = {}, list = [];
+  rows.slice(st0).forEach((r, i) => {
+    const e = GC.normEid(r[ie]), n = String(r[ini] || "").trim(), dp = idp >= 0 ? String(r[idp] || "").trim() : "";
+    let st = "ok"; if(!e || !n) st = "缺員編或姓名"; else if(seen[e]) st = "員編重複"; else seen[e] = 1;
+    list.push({ row: i + st0 + 1, e, n, d: dp, st });
+  });
+  return { list, bad: list.filter(x => x.st === "缺員編或姓名").length, dup: list.filter(x => x.st === "員編重複").length };
+}
+$("roFile").onchange = async ev => {
+  const f = ev.target.files[0]; if(!f) return;
+  $("roSum").textContent = "讀取中…"; $("roGo").disabled = true;
+  try { RO_PREV = roPrepare(await readRows(f)); }
+  catch(err){ RO_PREV = null; $("roSum").textContent = ""; $("roPrev").innerHTML = '<tr><td colspan="5" style="color:var(--bad)">' + esc(err.message) + '</td></tr>'; return; }
+  const ok = RO_PREV.list.filter(x => x.st === "ok");
+  $("roSum").textContent = "共 " + RO_PREV.list.length + " 列・可匯入 " + ok.length + (RO_PREV.dup ? "・員編重複 " + RO_PREV.dup : "") + (RO_PREV.bad ? "・缺欄位 " + RO_PREV.bad : "");
+  $("roPrev").innerHTML = RO_PREV.list.slice(0, 200).map(x => '<tr><td>' + x.row + '</td><td>' + esc(x.e) + '</td><td>' + esc(x.n) + '</td><td>' + esc(x.d) + '</td><td>' + (x.st === "ok" ? "✅" : '<b style="color:var(--bad)">' + x.st + '（跳過）</b>') + '</td></tr>').join("")
+    + (RO_PREV.list.length > 200 ? '<tr><td colspan="5" class="muted">只顯示前 200 列（匯入會全部處理）</td></tr>' : "") || '<tr><td colspan="5" class="muted">檔案裡沒有資料</td></tr>';
+  $("roGo").disabled = !ok.length; $("roGo").textContent = "確認匯入 " + ok.length + " 人";
+};
+$("roGo").onclick = async () => {
+  if(!RO_PREV) return;
+  const ok = RO_PREV.list.filter(x => x.st === "ok"), all = $("roMode").value === "all", skip = RO_PREV.dup + RO_PREV.bad;
+  if(!confirm((all ? "整份覆蓋：名單會換成這個檔案的 " : "新增／更新 ") + ok.length + " 人？" + (skip ? "\n（有問題的 " + skip + " 列會跳過）" : ""))) return;
+  $("roGo").disabled = true;
+  const cur = (await DB.get("roster")) || {}, nx = all ? {} : Object.assign({}, cur);
+  ok.forEach(x => { const old = cur[x.e]; nx[x.e] = Object.assign({ n: x.n, d: x.d }, old && old.pid ? { pid: old.pid } : {}); });
+  if(all) Object.keys(cur).forEach(e => { if(cur[e] && cur[e].pid && !nx[e]) nx[e] = cur[e]; });   /* 已開通的人不刪 */
+  await DB.set("roster", nx); await DB.set("rosterN", Object.keys(nx).length);
+  ROSTER = nx; RO_PREV = null; $("roFile").value = ""; $("roSum").textContent = ""; $("roGo").textContent = "確認匯入";
+  $("roPrev").innerHTML = '<tr><td colspan="5" class="muted">已匯入 ' + ok.length + ' 人，可以再選下一個檔案</td></tr>';
+  renderRoster(); toast("名單已匯入，目前共 " + Object.keys(nx).length + " 人");
+};
+$("roTpl").onclick = () => { const csv = "﻿員編,姓名,部門\r\nA0001,王小明,業務部\r\nA0002,陳美玲,行政部\r\n"; const el = document.createElement("a"); el.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); el.download = "員工名單範本.csv"; el.click(); };
+$("roAdd").onclick = async () => {
+  const e = GC.normEid($("roAddE").value), n = $("roAddN").value.trim(), dp = $("roAddD").value.trim();
+  if(!e || !n) return toast("員編和姓名都要填");
+  if(!ROSTER) await roLoad();
+  const old = (await DB.get("roster/" + e)) || {}, rec = Object.assign({ n, d: dp }, old.pid ? { pid: old.pid } : {});
+  await DB.set("roster/" + e, rec); ROSTER[e] = rec; await DB.set("rosterN", Object.keys(ROSTER).length);
+  ["roAddE","roAddN","roAddD"].forEach(id => $(id).value = ""); renderRoster(); toast("已新增：" + e + " " + n);
+};
+$("roClr").onclick = async () => {
+  if($("roClrTxt").value.trim() !== "清空") return toast("請先輸入「清空」");
+  if(!confirm("刪除整份名單？")) return;
+  await DB.remove("roster"); await DB.set("rosterN", 0); ROSTER = {}; $("roClrTxt").value = ""; renderRoster(); toast("名單已清空");
+};
+
 /* ---------- 玩家 ---------- */
 $("plQ").addEventListener("input", () => renderPlayers());
 function renderPlayers(){
   if(document.activeElement && document.activeElement.closest && document.activeElement.closest("#plT")) return;
   const q = $("plQ").value.trim(), arr = ranked();
-  const list = arr.map((p, i) => Object.assign({ rank: i + 1 }, p)).filter(p => !q || p.name.includes(q) || p.code === q).slice(0, 200);
+  const list = arr.map((p, i) => Object.assign({ rank: i + 1 }, p)).filter(p => !q || p.name.includes(q) || p.code === q || (p.eid || "").includes(q.toUpperCase())).slice(0, 200);
   $("plN").textContent = "共 " + arr.length + " 人" + (q ? "，符合 " + list.length : "") + (list.length >= 200 ? "（只顯示前 200）" : "");
   const nClue = GC.cfg.hunt.clues.length; $("thHunt").style.display = GC.cfg.hunt.on ? "" : "none";
-  $("plT").innerHTML = list.map(p => '<tr><td>' + p.rank + '</td><td>' + esc(p.name) + '</td><td>' + p.code + '</td><td>' + (p.table || '<span class="muted">未綁</span>') + '</td><td class="n">' + money(p.bal) + '</td>' + (GC.cfg.hunt.on ? '<td>' + GC.cfg.hunt.clues.filter(c => p.hunt && p.hunt[c.id]).length + '/' + nClue + '</td>' : '') + '<td>' + (p.relief ? "已領" : "") + '</td>' +
+  const showE = roMode() || Object.values(PLAYERS).some(p => p && p.eid); $("thEid").style.display = showE ? "" : "none";
+  $("plT").innerHTML = list.map(p => '<tr><td>' + p.rank + '</td><td>' + esc(p.name) + '</td>' + (showE ? '<td>' + esc(p.eid || "—") + '</td>' : '') + '<td>' + p.code + '</td><td>' + (p.table || '<span class="muted">未綁</span>') + '</td><td class="n">' + money(p.bal) + '</td>' + (GC.cfg.hunt.on ? '<td>' + GC.cfg.hunt.clues.filter(c => p.hunt && p.hunt[c.id]).length + '/' + nClue + '</td>' : '') + '<td>' + (p.relief ? "已領" : "") + '</td>' +
     '<td><input type="number" placeholder="+/- 金額" style="width:90px;padding:4px;border:2px solid var(--ink);border-radius:6px" id="adj_' + p.pid + '"> <button class="btn inline" data-adj="' + p.pid + '">送出</button></td>' +
     '<td><input type="number" placeholder="桌號" style="width:64px;padding:4px;border:2px solid var(--ink);border-radius:6px" id="tb_' + p.pid + '"> <button class="btn inline" data-tb="' + p.pid + '">改</button></td></tr>').join("");
   $$("[data-adj]").forEach(b => b.onclick = async () => {
@@ -1910,7 +2040,7 @@ function renderPlayers(){
 const STOCK_TYPES = { "穩健": [0.6, 0.3, 0.1], "成長": [0.25, 0.55, 0.2], "投機": [0.15, 0.25, 0.6], "混合": [0.34, 0.33, 0.33] };
 const SL = ["A","B","C","D","E"];
 const CFG_FIELDS = {
-  wel: [["bonus","開通禮金"],["relief.amount","救濟金金額"],["relief.below","餘額低於多少可領救濟金"],["hunt.on","這場有尋寶","chk"],["hunt.reward","尋寶每個線索"],["hunt.allBonus","尋寶全部找齊加碼"]],
+  wel: [["join.mode","開通方式","sels",[["eid","員編＋姓名"],["name","只填姓名"]]],["bonus","開通禮金"],["relief.amount","救濟金金額"],["relief.below","餘額低於多少可領救濟金"],["hunt.on","這場有尋寶","chk"],["hunt.reward","尋寶每個線索"],["hunt.allBonus","尋寶全部找齊加碼"]],
   horse: [["horse.betSec","下注秒數"],["horse.runSec","比賽長度（秒）"],["horse.resultSec","開獎畫面停留（秒）"],["horse.maxBet","每人每場最多押"],["horse.take","莊家抽成 %","pct"],["horse.seed","每個彩池底池"],
     ["w","馬匹和騎師的名字在「馬匹・騎師」分頁"]],
   hpool: HORSE.HPOOL.map((H, i) => ["horse.hpool." + i, (i + 1), "pname", HORSE.STYLE_NAME[H.s] + (H.t.length ? "・" + H.t.map(t => HORSE.TRAIT[t]).join("・") : "")]),
@@ -1934,6 +2064,7 @@ function fieldHtml([k, l, t, opt]){
   if(t === "pair") return '<div class="pair"><span>' + l + '</span><input data-k="' + k + '" data-ty="text" value="' + esc(getK(GC.cfg, k) || "") + '"><input data-k="' + opt + '" data-ty="text" value="' + esc(getK(GC.cfg, opt) || "") + '"></div>';
   const v = getK(GC.cfg, k);
   if(t === "chk") return '<span>' + l + '</span><label style="display:flex;align-items:center;gap:6px;font-weight:700;cursor:pointer"><input type="checkbox" style="width:20px;height:20px" data-k="' + k + '" data-ty="bool"' + (v ? " checked" : "") + '>開啟</label>';
+  if(t === "sels") return '<span>' + l + '</span><select data-k="' + k + '" data-ty="text">' + opt.map(([ov, ol]) => '<option value="' + ov + '"' + (v === ov ? " selected" : "") + '>' + ol + '</option>').join("") + '</select>';
   if(t === "sel") return '<span>' + l + '</span><select data-k="' + k + '" data-ty="num">' + opt.map(([ov, ol]) => '<option value="' + ov + '"' + (+v === ov ? " selected" : "") + '>' + ol + '</option>').join("") + '</select>';
   if(t === "ptype") return '<span>' + l + '</span><select data-k="' + k + '" data-ty="ptype">' + Object.keys(STOCK_TYPES).map(o => '<option' + (v === o ? " selected" : "") + '>' + o + '</option>').join("") + '</select>';
   const shown = t === "list" ? (v || []).join(",") : t === "pct" ? Math.round((+v || 0) * 1000) / 10 : v;
@@ -1975,7 +2106,7 @@ function renderQr(){
 /* ---------- 結算 / 清空 ---------- */
 $("bCsv").onclick = async () => {
   const arr = ranked(), R = ((await DB.get("stockResult")) || {}).r || {};
-  const rows = [["名次","姓名","編號","桌號","最終餘額","股票報酬率","稱號","備註"]].concat(arr.map((p, i) => { const r = R[p.pid] || {}; return [i+1, p.name, p.code, p.table || "", p.bal, r.ret != null ? r.ret + "%" : "", r.title || "", i < GC.cfg.award.topN ? "前 " + GC.cfg.award.topN + " 名" : ""]; }));
+  const rows = [["名次","姓名","員編","部門","編號","桌號","最終餘額","股票報酬率","稱號","備註"]].concat(arr.map((p, i) => { const r = R[p.pid] || {}; return [i+1, p.name, p.eid || "", p.dept || "", p.code, p.table || "", p.bal, r.ret != null ? r.ret + "%" : "", r.title || "", i < GC.cfg.award.topN ? "前 " + GC.cfg.award.topN + " 名" : ""]; }));
   const csv = "﻿" + rows.map(r => r.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(",")).join("\r\n");
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
   a.download = "大富翁結算_" + new Date().toISOString().slice(0, 16).replace(/[T:]/g, "") + ".csv"; a.click();
@@ -1986,6 +2117,7 @@ $("bWipe").onclick = async () => {
   if($("wTxt").value.trim() !== "清空") return toast("請先輸入「清空」");
   if(!confirm("最後確認：刪除所有玩家與紀錄？")) return;
   const u = {}; ["players","codes","logs","bets","pools","pk","pkLive","pkPairs","roomIdx","inbox","board","state","feed","raceLog","teamDeck","teamDraws","teamUndo","teamBoard","mkt","stockHist","stock","stockResult"].forEach(k => u[k] = null);
+  const ros = (await DB.get("roster")) || {}; Object.keys(ros).forEach(e => { if(ros[e] && ros[e].pid) u["roster/" + e + "/pid"] = null; });
   await DB.update("", u); $("wTxt").value = ""; lastBoard = ""; MKT = null; HIST = null; PL = {}; toast("已清空");
 };
 
@@ -2003,6 +2135,7 @@ async function start(){
   DB.on("mkt", v => { if(!MKT || GC.phase() !== "stock" || !stockState().open) MKT = v; });
   DB.on("stockHist", v => { if(!HIST) HIST = v; });
   DB.on("stock/pl", v => { PL = v || {}; });
+  DB.on("rosterN", v => { ROSTER_N = +v || 0; });
   watchPk();
   setInterval(raceEngine, 1000);
   setInterval(pkEngine, 300);

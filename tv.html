@@ -127,8 +127,10 @@ html,body{height:100%;overflow:hidden;background:#000}
 .rlead{display:flex;justify-content:center;gap:24px;padding:10px;background:var(--paper);border-top:4px solid var(--ink);flex:none}
 .lpos{display:flex;align-items:center;gap:6px;font-size:22px;color:var(--mute);font-weight:900}.lpos i{font-style:normal}
 .lpos b{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:22px var(--num);border:3px solid var(--ink)}
-.hpod{display:flex;align-items:flex-end;gap:28px;margin-top:60px}
-.hp{width:240px;background:var(--board);border:4px solid var(--ink);border-bottom:0;border-radius:10px 10px 0 0;display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:4px}
+.hpod{display:flex;align-items:flex-end;gap:10px;margin-top:56px;padding:0 26px;border-bottom:8px solid var(--ink);flex:none}
+.hp{width:240px;background:var(--board);border:4px solid var(--ink);border-bottom:0;border-radius:10px 10px 0 0;display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:2px;flex:none}
+.hp.k0{background:#F6D55C}.hp.k1{background:#DCE1E6}.hp.k2{background:#E9BC94}
+.hp .rk{margin-top:auto;padding-bottom:6px;font-size:30px;font-weight:900;letter-spacing:.2em}
 .hp .hb{margin-top:-60px}
 /* 團體賽 */
 .tgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;align-content:start}
@@ -162,7 +164,8 @@ html,body{height:100%;overflow:hidden;background:#000}
 .pod .who{animation:rise .9s cubic-bezier(.2,.9,.3,1) both;margin-bottom:12px}
 .pod .nm{font-size:40px;font-weight:900}
 .pod .ttl{display:inline-block;margin-top:8px;font-size:24px;font-weight:900;padding:4px 18px;border-radius:99px;border:3px solid var(--ink);background:#fff}
-.pod .amt{margin-top:8px;font:28px var(--num)}
+.pod .amt{margin-top:10px;font:36px var(--num)}.pod .amt small{display:block;font:900 20px "Noto Sans TC";color:var(--mute);line-height:1.2}.pod.p1 .amt{font-size:44px}
+.cr .ca{font-size:26px}.cr .cret{width:110px;text-align:right}
 .pod .ret{font-size:22px;font-weight:900}
 .pod .base{border:5px solid var(--ink);border-bottom:0;border-radius:12px 12px 0 0;display:flex;justify-content:center;font:80px var(--num);padding-top:10px;animation:rise .9s cubic-bezier(.2,.9,.3,1) both}
 .pod.p1 .base{height:340px;background:var(--gold)}.pod.p2 .base{height:240px;background:#D9DDE1}.pod.p3 .base{height:170px;background:#E7B48A}
@@ -212,6 +215,7 @@ const FB_DB_URL  = "https://www.gstatic.com/firebasejs/10.12.2/firebase-database
 /* ---------- 預設數值（後台「數值設定」可改，改完存進資料庫覆蓋這裡） ---------- */
 const GC_DEFAULTS = {
   bonus: 1000,                                  /* 開通禮金 */
+  join: { mode: "eid" },                        /* 開通方式：eid＝員編＋姓名（比對後台匯入的名單）；name＝只填姓名 */
   relief: { amount: 200, below: 50 },           /* 救濟金：餘額低於 below 可領一次 */
   hunt: {
     on: false,                                  /* 這場有沒有尋寶（後台勾選；預設不勾） */
@@ -539,6 +543,10 @@ const GC = {
     const p = await DB.get("players/" + pid);
     return p ? Object.assign({ pid }, p) : null;
   },
+  /* 員編：全形轉半形、去空白、轉大寫；Firebase 路徑不能有的字元換成 _ */
+  normEid(s){ return String(s || "").normalize("NFKC").trim().toUpperCase().replace(/\s+/g, "").replace(/[.#$\[\]\/]/g, "_").slice(0, 30); },
+  /* 姓名比對：全形轉半形、去掉所有空白和間隔號，英文不分大小寫（「王 小明」＝「王小明」） */
+  normName(s){ return String(s || "").normalize("NFKC").replace(/[\s\u3000·・.]/g, "").toLowerCase(); },
   parseCode(text){
     const s = String(text || "");
     const m = s.match(/[?&]pk=(\d{4})/) || s.match(/^\s*(\d{4})\s*$/) || s.match(/GC[:\-]?(\d{4})/i);
@@ -1130,7 +1138,7 @@ function raceHtml(rk, r){
   if(rk === "run") return '<div class="ph">🏇 大富翁賽馬・第 ' + r.no + ' 場<small>● LIVE・手機同步播放</small></div><div class="race-wrap"><canvas id="rCv"></canvas><div class="rcap" id="rCap"></div><div class="rphoto" id="rPhoto">PHOTO FINISH<span>照片判定中</span></div></div><div class="rlead" id="rLead">&nbsp;</div>';
   if(rk === "done"){
     const o = r.order || [], F = r.final || { odds: { w: {}, p: {}, q: {} }, refund: {} }, fo = (t, k) => F.refund[t] ? "無人押中" : "× " + F.odds[t][k], qk = o.length ? HORSE.ck(o[0], o[1]) : "";
-    return '<div class="ph">🏇 大富翁賽馬・第 ' + r.no + ' 場<small>開獎</small></div><div class="cbox"><div class="hpod">' + [1, 0, 2].map(k => o[k] != null ? '<div class="hp" style="height:' + [190, 140, 100][k] + 'px">' + hball(o[k], "lg") + '<div style="font-weight:900;font-size:28px">' + esc(names[o[k]]) + '</div><div class="mute" style="font-size:20px">' + ["冠軍","亞軍","季軍"][k] + '</div></div>' : "").join("") + '</div>' +
+    return '<div class="ph">🏇 大富翁賽馬・第 ' + r.no + ' 場<small>開獎</small></div><div class="cbox"><div class="hpod">' + [1, 0, 2].map(k => o[k] != null ? '<div class="hp k' + k + '" style="height:' + [220, 180, 150][k] + 'px">' + hball(o[k], "lg") + '<div style="font-weight:900;font-size:28px">' + esc(names[o[k]]) + '</div><div class="rk">' + ["冠軍","亞軍","季軍"][k] + '</div></div>' : "").join("") + '</div>' +
       '<div style="font-size:30px;font-weight:900">獨贏 ' + (o[0]+1) + ' 號 <span style="color:var(--red)">' + fo("w", "h" + o[0]) + '</span>　連贏 ' + (o[0]+1) + '・' + (o[1]+1) + ' 號 <span style="color:var(--red)">' + fo("q", qk) + '</span></div>' +
       '<div style="font-size:30px;font-weight:900">中獎 <span style="color:var(--red)">' + (r.winners || 0) + '</span> 人・派彩 <span style="color:var(--red)">' + money(r.paid || 0) + '</span> 幣</div>' +
       (o.length ? '<div style="font-size:24px;font-weight:700">冠軍勝因：' + HORSE.why(r, o[0]).map(esc).join("・") + (r.jk ? '　騎師 ' + esc(r.jk[o[0]]) : "") + '</div>' : '') +
@@ -1463,12 +1471,13 @@ function renderFinal(){
   let arr;
   if(R && Object.keys(R).length) arr = Object.keys(R).map(pid => Object.assign({ pid, n: (PL[pid] || {}).n || "—", t: (PL[pid] || {}).t || 0 }, R[pid])).sort((a, b) => a.rk - b.rk || b.asset - a.asset);
   else arr = ((BOARD && BOARD.top) || []).map((p, i) => ({ n: p.n, t: p.t, rk: i + 1, title: "", ret: null, asset: p.b }));
+  const aLbl = R && Object.keys(R).length ? "總資產" : "餘額";
   const key = "final" + arr.length + (RESULT ? RESULT.meta.at : ""); if(key === vkey) return;
   const first = !awardShown; awardShown = true; vkey = key;
   const build = () => {
     const pod = [1, 0, 2].map(i => { const p = arr[i]; if(!p) return '<div class="pod p' + (i + 1) + '"></div>';
-      return '<div class="pod p' + (i + 1) + '"><div class="who"><div class="nm">' + esc(p.n) + '</div>' + (p.title ? '<div class="ttl">' + esc(p.title) + '</div>' : '') + (p.ret != null ? '<div class="ret ' + (p.ret > 0 ? "up" : p.ret < 0 ? "dn" : "") + '">報酬 ' + (p.ret > 0 ? "+" : "") + p.ret.toFixed(1) + '%</div>' : '') + '</div><div class="base">' + (i + 1) + '</div></div>'; }).join("");
-    const rest = arr.slice(3, 50), rows = rest.map(p => '<div class="cr"><span class="r">' + p.rk + '</span><span class="n">' + esc(p.n) + (p.title ? '<span class="tt2">' + esc(p.title) + '</span>' : '') + '</span>' + (p.ret != null ? '<span class="num ' + (p.ret > 0 ? "up" : p.ret < 0 ? "dn" : "") + '" style="font-size:24px">' + (p.ret > 0 ? "+" : "") + p.ret.toFixed(1) + '%</span>' : '') + '</div>').join("");
+      return '<div class="pod p' + (i + 1) + '"><div class="who"><div class="nm">' + esc(p.n) + '</div>' + (p.title ? '<div class="ttl">' + esc(p.title) + '</div>' : '') + (p.asset != null ? '<div class="amt"><small>' + aLbl + '</small> ' + money(p.asset) + '</div>' : '') + (p.ret != null ? '<div class="ret ' + (p.ret > 0 ? "up" : p.ret < 0 ? "dn" : "") + '">報酬 ' + (p.ret > 0 ? "+" : "") + p.ret.toFixed(1) + '%</div>' : '') + '</div><div class="base">' + (i + 1) + '</div></div>'; }).join("");
+    const rest = arr.slice(3, 50), rows = rest.map(p => '<div class="cr"><span class="r">' + p.rk + '</span><span class="n">' + esc(p.n) + (p.title ? '<span class="tt2">' + esc(p.title) + '</span>' : '') + '</span>' + (p.asset != null ? '<span class="num ca">' + money(p.asset) + '</span>' : '') + (p.ret != null ? '<span class="num cret ' + (p.ret > 0 ? "up" : p.ret < 0 ? "dn" : "") + '" style="font-size:24px">' + (p.ret > 0 ? "+" : "") + p.ret.toFixed(1) + '%</span>' : '') + '</div>').join("");
     $("board").innerHTML = hd("🏆 今晚的大亨", "最終個人榜", '<span class="mute" style="font-size:22px">名次看總資產・稱號看報酬率・個人獎 ' + top + ' 名 <span class="tbd">待議</span></span>') +
       '<div class="body" style="grid-template-columns:1.35fr 1fr"><div class="podium"><div id="confetti"></div>' + pod + '</div>' +
       '<div class="panel"><div class="ph">' + (rest.length ? "第 4 名 － 第 " + (rest.length + 3) + " 名" : "全場 " + arr.length + " 人") + '</div><div class="credits"><div class="roll' + (rest.length >= 10 ? " run" : "") + '" style="animation-duration:' + Math.max(10, rest.length * 1.6) + 's">' + rows + (rest.length >= 10 ? rows : "") + '</div></div></div></div>';
