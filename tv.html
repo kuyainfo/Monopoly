@@ -945,7 +945,7 @@ const PKX = {
     dice:  { n: "擲骰對決",   ic: "🎲", c: "#DE2A2F", tag: "可多人", rule: "兩顆骰子比點數，大的贏。第一名平手就再擲；擲出雙 6 直接獲勝" },
     rps:   { n: "剪刀石頭布", ic: "✊", c: "#1F4C9E", tag: "1 對 1", rule: "三戰兩勝，平手不算。每局 5 秒內出拳，沒出會自動隨機出" },
     cash:  { n: "快手數鈔",   ic: "💵", c: "#EE8622", tag: "可多人", rule: "15 秒內往上滑，滑一次數一張，張數多的人贏" },
-    build: { n: "蓋樓大賽",   ic: "🏨", c: "#D23B8B", tag: "可多人", rule: "15 秒內狂點，點一下蓋一層，樓蓋得高的人贏" }
+    build: { n: "蓋樓大賽",   ic: "🏨", c: "#D23B8B", tag: "可多人", rule: "15 秒內狂點蓋房子，從空地一路蓋到摩天樓，地價最高的人贏" }
   },
   HANDS: ["✊", "✌️", "✋"],
   HAND_NAME: ["石頭", "剪刀", "布"],
@@ -988,9 +988,31 @@ const PKX = {
   scoreText(g, m, pid){
     if(g === "dice"){ const rs = ((m.dice || {}).rolls || {})[pid]; if(!rs) return ""; const r = rs[0]; return (this.dscore(r) === 99 ? "雙 6" : (r[0] + r[1]) + " 點") + (rs.length > 1 ? "（再擲 " + rs.slice(1).map(x => x[0] + x[1]).join("、") + "）" : ""); }
     if(g === "rps"){ return ((m.rps || {}).w || {})[pid] ? m.rps.w[pid] + " 勝" : "0 勝"; }
-    const v = (m.sc || {})[pid]; return v == null ? "—" : v + (g === "cash" ? " 張" : " 層");
+    const v = (m.sc || {})[pid]; return v == null ? "—" : g === "cash" ? v + " 張" : "地價 " + BLD.fmt(BLD.val(v));
   },
-  tier(n){ return n < 25 ? "🏠 小房子" : n < 60 ? "🏢 公寓" : n < 110 ? "🏙️ 辦公大樓" : "🏨 大飯店"; }
+  tier(n){ return BLD.T[BLD.tier(n)].n; }
+};
+/* 蓋樓大賽：點數 → 房子等級與地價（地價單位：萬；成績與排名仍然比點數） */
+const BLD = {
+  T: [
+    { p: 0,   n: "空地",       v: 500,    band: "#8A4B2A", x0: 46, x1: 146, top: 124 },
+    { p: 10,  n: "打地基",     v: 1200,   band: "#9ED3EE", x0: 45, x1: 157, top: 105 },
+    { p: 25,  n: "小木屋",     v: 3000,   band: "#D23B8B", x0: 62, x1: 140, top: 63 },
+    { p: 45,  n: "磚造平房",   v: 6000,   band: "#EE8622", x0: 44, x1: 158, top: 57 },
+    { p: 70,  n: "兩層洋房",   v: 12000,  band: "#DE2A2F", x0: 50, x1: 152, top: 31 },
+    { p: 100, n: "豪華別墅",   v: 25000,  band: "#F3CF1B", x0: 36, x1: 170, top: 65 },
+    { p: 135, n: "公寓大樓",   v: 50000,  band: "#1E9447", x0: 62, x1: 140, top: 12 },
+    { p: 170, n: "五星飯店",   v: 100000, band: "#1F4C9E", x0: 48, x1: 154, top: 10 },
+    { p: 210, n: "地標摩天樓", v: 300000, band: "#E2A72E", x0: 44, x1: 156, top: 2 }
+  ],
+  tier(p){ let t = 0; this.T.forEach((d, i) => { if(p >= d.p) t = i; }); return t; },
+  val(p){
+    const T = this.T, L = T.length - 1; p = Math.max(0, +p || 0);
+    if(p >= T[L].p) return T[L].v + (p - T[L].p) * 5000;
+    let i = 0; while(p >= T[i + 1].p) i++;
+    return T[i].v + (T[i + 1].v - T[i].v) * (p - T[i].p) / (T[i + 1].p - T[i].p);
+  },
+  fmt(v){ return v >= 10000 ? (v / 10000).toFixed(v >= 100000 ? 1 : 2) + "億" : Math.round(v).toLocaleString() + "萬"; }
 };
 
 /* ================================================================
